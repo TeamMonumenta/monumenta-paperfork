@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Byron Marohn <Combustible@live.com>
+Date: Fri, 29 Apr 2022 20:25:10 -0700
+Subject: [PATCH] Monumenta - TEST - Remove sleeping in bed obstruction check
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+index 70ef026dd7e695e4f527e6fe17c25602a39f5c33..12de29e5d854a18ad229e5481b6f776cb668555a 100644
+--- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
++++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+@@ -1273,8 +1273,6 @@ public class ServerPlayer extends Player {
+                 return Either.left(Player.BedSleepingProblem.NOT_POSSIBLE_HERE);
+             } else if (!this.bedInRange(blockposition, enumdirection)) {
+                 return Either.left(Player.BedSleepingProblem.TOO_FAR_AWAY);
+-            } else if (this.bedBlocked(blockposition, enumdirection)) {
+-                return Either.left(Player.BedSleepingProblem.OBSTRUCTED);
+             } else {
+                 return Either.right(Unit.INSTANCE);
+             }
