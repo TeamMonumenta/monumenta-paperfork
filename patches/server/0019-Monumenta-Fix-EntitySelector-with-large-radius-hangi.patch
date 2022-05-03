@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Njol <njol@gmx.ch>
+Date: Mon, 25 Apr 2022 17:39:08 +0200
+Subject: [PATCH] Monumenta - Fix EntitySelector with large radius hanging the
+ server
+
+
+diff --git a/src/main/java/io/papermc/paper/world/EntitySliceManager.java b/src/main/java/io/papermc/paper/world/EntitySliceManager.java
+index 3ba094e640d7fe7803e2bbdab8ff3beb6f50e8a0..351a5bc3437b196e33f6174deeaf3853932e5439 100644
+--- a/src/main/java/io/papermc/paper/world/EntitySliceManager.java
++++ b/src/main/java/io/papermc/paper/world/EntitySliceManager.java
+@@ -120,6 +120,16 @@ public final class EntitySliceManager {
+         final int maxChunkX = (Mth.floor(box.maxX) + 2) >> 4;
+         final int maxChunkZ = (Mth.floor(box.maxZ) + 2) >> 4;
+ 
++        // Monumenta - if this would iterate over more than 1000 chunks, iterate over entities instead
++        if (((long) maxChunkX - minChunkX >= 1000L || (long) maxChunkZ - minChunkZ >= 1000L || ((long) maxChunkX - minChunkX) * ((long) maxChunkZ - minChunkZ) >= 1000L)) {
++            world.getEntities().get(box, e -> {
++                if (predicate.test(e)) {
++                    into.add(e);
++                }
++            });
++            return;
++        }
++
+         final int minRegionX = minChunkX >> REGION_SHIFT;
+         final int minRegionZ = minChunkZ >> REGION_SHIFT;
+         final int maxRegionX = maxChunkX >> REGION_SHIFT;
+@@ -199,6 +209,16 @@ public final class EntitySliceManager {
+         final int maxChunkX = (Mth.floor(box.maxX) + 2) >> 4;
+         final int maxChunkZ = (Mth.floor(box.maxZ) + 2) >> 4;
+ 
++        // Monumenta - if this would iterate over more than 1000 chunks, iterate over entities instead
++        if (((long) maxChunkX - minChunkX >= 1000L || (long) maxChunkZ - minChunkZ >= 1000L || ((long) maxChunkX - minChunkX) * ((long) maxChunkZ - minChunkZ) >= 1000L)) {
++            world.getEntities().get(type, box, e -> {
++                if (predicate.test((T) e)) {
++                    into.add((T) e);
++                }
++            });
++            return;
++        }
++
+         final int minRegionX = minChunkX >> REGION_SHIFT;
+         final int minRegionZ = minChunkZ >> REGION_SHIFT;
+         final int maxRegionX = maxChunkX >> REGION_SHIFT;
+@@ -239,6 +259,16 @@ public final class EntitySliceManager {
+         final int maxChunkX = (Mth.floor(box.maxX) + 2) >> 4;
+         final int maxChunkZ = (Mth.floor(box.maxZ) + 2) >> 4;
+ 
++        // Monumenta - if this would iterate over more than 1000 chunks, iterate over entities instead
++        if (((long) maxChunkX - minChunkX >= 1000L || (long) maxChunkZ - minChunkZ >= 1000L || ((long) maxChunkX - minChunkX) * ((long) maxChunkZ - minChunkZ) >= 1000L)) {
++            world.getEntities().get(box, e -> {
++                if (e != except && clazz.isInstance(e) && predicate.test((T) e)) {
++                    into.add((T) e);
++                }
++            });
++            return;
++        }
++
+         final int minRegionX = minChunkX >> REGION_SHIFT;
+         final int minRegionZ = minChunkZ >> REGION_SHIFT;
+         final int maxRegionX = maxChunkX >> REGION_SHIFT;
