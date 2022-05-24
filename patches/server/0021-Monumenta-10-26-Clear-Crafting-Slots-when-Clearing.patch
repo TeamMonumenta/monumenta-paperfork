@@ -1,0 +1,67 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Tue, 24 May 2022 18:58:19 +1000
+Subject: [PATCH] Monumenta [10/26] - Clear Crafting Slots when Clearing
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/player/Inventory.java b/src/main/java/net/minecraft/world/entity/player/Inventory.java
+index c7e16e96633e17b951f0681599c5b3efc3ce1e6c..f502574bfb2c24bbfc8970196f6c7aad924ff10b 100644
+--- a/src/main/java/net/minecraft/world/entity/player/Inventory.java
++++ b/src/main/java/net/minecraft/world/entity/player/Inventory.java
+@@ -21,6 +21,8 @@ import net.minecraft.world.Nameable;
+ import net.minecraft.world.damagesource.DamageSource;
+ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.entity.EquipmentSlot;
++import net.minecraft.world.inventory.CraftingMenu;
++import net.minecraft.world.inventory.InventoryMenu;
+ import net.minecraft.world.item.ArmorItem;
+ import net.minecraft.world.item.Item;
+ import net.minecraft.world.item.ItemStack;
+@@ -260,6 +262,34 @@ public class Inventory implements Container, Nameable {
+             this.player.containerMenu.setCarried(ItemStack.EMPTY);
+         }
+ 
++        // Monumenta Start
++        net.minecraft.world.inventory.CraftingContainer craftingContainer =
++                this.player.containerMenu instanceof net.minecraft.world.inventory.InventoryMenu ? ((InventoryMenu) this.player.containerMenu).craftSlots :
++                this.player.containerMenu instanceof net.minecraft.world.inventory.CraftingMenu ? ((CraftingMenu) this.player.containerMenu).craftSlots : null;
++
++        if (craftingContainer != null) {
++            for (int k = 0; k < craftingContainer.getContainerSize(); ++k) {
++                ItemStack item = craftingContainer.getItem(k);
++
++                if (!item.isEmpty() && shouldRemove.test(item)) {
++                    int l = maxCount <= 0 ? item.getCount() : Math.min(maxCount - j, item.getCount());
++
++                    j += l;
++                    if (maxCount != 0) {
++                        item.shrink(l);
++                        if (item.isEmpty()) {
++                            craftingContainer.setItem(k, ItemStack.EMPTY);
++                        }
++
++                        if (maxCount > 0 && j >= maxCount) {
++                            return j;
++                        }
++                    }
++                }
++            }
++        }
++
++        // Monumenta End
+         return j;
+     }
+ 
+diff --git a/src/main/java/net/minecraft/world/inventory/InventoryMenu.java b/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
+index 111da6398bb561e58571e47743088ce80416234d..ab62bfde7bfe66fc1988c3930e75903e6e78e270 100644
+--- a/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
++++ b/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
+@@ -38,7 +38,7 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {
+     static final ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET};
+     private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+     // CraftBukkit start
+-    private final CraftingContainer craftSlots;
++    public final CraftingContainer craftSlots; // Monumenta
+     private final ResultContainer resultSlots;
+     // CraftBukkit end
+     public final boolean active;
