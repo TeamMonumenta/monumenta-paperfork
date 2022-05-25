@@ -1,0 +1,148 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Wed, 25 May 2022 14:23:42 +1000
+Subject: [PATCH] Monumenta - Mobs that despawn return to their spawners
+
+
+diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+index 70ef026dd7e695e4f527e6fe17c25602a39f5c33..4c1bae075c318447a3ed3e813ed5b7bfa9d7588c 100644
+--- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
++++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
+@@ -945,6 +945,15 @@ public class ServerPlayer extends Player {
+         this.setTicksFrozen(0);
+         this.setSharedFlagOnFire(false);
+         this.getCombatTracker().recheckStatus();
++
++        // Monumenta START - don't allow mobs to reprime spawners when they are near players that die.
++        for (org.bukkit.entity.Entity nearby : this.level.getWorld().getNearbyEntities(new Location(this.level.getWorld(), this.getX(), this.getY(), this.getZ()), 24.0d, 24.0d, 24.0d)) {
++            ((org.bukkit.craftbukkit.entity.CraftEntity)nearby).getHandle().spawnerSpawnedBy = null;
++            if (this.getTags().contains("DelvesPlayer")) {
++                ((org.bukkit.craftbukkit.entity.CraftEntity)nearby).getHandle().delveReprime = true;
++            }
++        }
++        // Monumenta END
+     }
+ 
+     private void tellNeutralMobsThatIDied() {
+diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
+index 8ca6388ddd834c4f0e94450c8a6ce6b5e73a5f60..ee2e3453c1f18d5078b035e3c0e4eb231e6bfda8 100644
+--- a/src/main/java/net/minecraft/world/entity/Entity.java
++++ b/src/main/java/net/minecraft/world/entity/Entity.java
+@@ -147,6 +147,7 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
+ import org.bukkit.event.player.PlayerTeleportEvent;
+ import org.bukkit.plugin.PluginManager;
+ // CraftBukkit end
++import net.minecraft.world.level.BaseSpawner; // Monumenta
+ 
+ public abstract class Entity implements Nameable, EntityAccess, CommandSource, io.papermc.paper.util.KeyedObject { // Paper
+ 
+@@ -322,6 +323,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource, i
+     public boolean fromNetherPortal; // Paper
+     protected int numCollisions = 0; // Paper
+     public boolean spawnedViaMobSpawner; // Paper - Yes this name is similar to above, upstream took the better one
++    public BaseSpawner spawnerSpawnedBy = null; // Monumenta
++    public boolean delveReprime = false; // Monumenta
+     @javax.annotation.Nullable
+     private org.bukkit.util.Vector origin;
+     @javax.annotation.Nullable
+@@ -602,6 +605,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource, i
+         return this.id;
+     }
+ 
++    // Monumenta START
++    public void despawn() {
++        if (this instanceof LivingEntity && this.spawnerSpawnedBy != null && ((LivingEntity) this).getHealth() >= 1 && this.getY() > 0 && this.spawnerSpawnedBy.blockPos != null) {
++            // Get closest player to spawner
++            Player player = this.level.getNearestPlayer(this.spawnerSpawnedBy.blockPos.getX(), this.spawnerSpawnedBy.blockPos.getY(), this.spawnerSpawnedBy.blockPos.getZ(), -1, false);
++            if (player != null) {
++                // Figure out how far player is from spawner.
++                double dX = player.getX() - this.spawnerSpawnedBy.blockPos.getX();
++                double dY = player.getY() - this.spawnerSpawnedBy.blockPos.getY();
++                double dZ = player.getZ() - this.spawnerSpawnedBy.blockPos.getZ();
++                double nearestPlayerDistanceSquared = dX * dX + dY * dY + dZ * dZ;
++                if (nearestPlayerDistanceSquared >= 576) { // 24 * 24
++                    // No players are next to the spawner the mob came from - reprime it
++                    if (this.delveReprime) {
++                        // Player died nearby in a delve -> reprime to 5s
++                        this.spawnerSpawnedBy.spawnDelay = 100;
++                    } else {
++                        // Not a delve or no player died nearby -> fully reprime
++                        this.spawnerSpawnedBy.spawnDelay = 0;
++                    }
++                }
++            }
++        }
++        discard();
++    }
++    // Monumenta END
++
+     public void remove(Entity.RemovalReason reason) {
+         this.setRemoved(reason);
+         if (reason == Entity.RemovalReason.KILLED) {
+diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
+index 031660f7d0ea270f87e5174a4fe65ccad1f7a561..224b91a65a6f3331c009b49c1b429589a9154227 100644
+--- a/src/main/java/net/minecraft/world/entity/Mob.java
++++ b/src/main/java/net/minecraft/world/entity/Mob.java
+@@ -790,7 +790,7 @@ public abstract class Mob extends LivingEntity {
+     @Override
+     public void checkDespawn() {
+         if (this.level.getDifficulty() == Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
+-            this.discard();
++            this.despawn(); // Monumenta
+         } else if (!this.isPersistenceRequired() && !this.requiresCustomPersistence()) {
+             // Paper start - optimise checkDespawn
+             Player entityhuman = this.level.findNearbyPlayer(this, level.paperConfig.hardDespawnDistances.getInt(this.getType().getCategory()) + 1, EntitySelector.affectsSpawning); // Paper
+@@ -805,14 +805,14 @@ public abstract class Mob extends LivingEntity {
+                 int j = i * i;
+ 
+                 if (d0 > (double) j) { // CraftBukkit - remove isTypeNotPersistent() check
+-                    this.discard();
++                    this.despawn(); // Monumenta
+                 }
+ 
+                 int k = this.level.paperConfig.softDespawnDistances.getInt(this.getType().getCategory()); // Paper - custom despawn distances
+                 int l = k * k;
+ 
+                 if (this.noActionTime > 600 && this.random.nextInt(800) == 0 && d0 > (double) l) { // CraftBukkit - remove isTypeNotPersistent() check
+-                    this.discard();
++                    this.despawn(); // Monumenta
+                 } else if (d0 < (double) l) {
+                     this.noActionTime = 0;
+                 }
+diff --git a/src/main/java/net/minecraft/world/level/BaseSpawner.java b/src/main/java/net/minecraft/world/level/BaseSpawner.java
+index 03726227fdd60e9cf77213d50184abff438e01ef..cb1595863e2ae8f60a12bbbe088b442eafef95e2 100644
+--- a/src/main/java/net/minecraft/world/level/BaseSpawner.java
++++ b/src/main/java/net/minecraft/world/level/BaseSpawner.java
+@@ -43,6 +43,7 @@ public abstract class BaseSpawner {
+     public int spawnRange = 4;
+     private final Random random = new Random();
+     private int tickDelay = 0; // Paper
++    public BlockPos blockPos = null; // Monumenta
+ 
+     public BaseSpawner() {}
+ 
+@@ -180,6 +181,12 @@ public abstract class BaseSpawner {
+                             // Spigot End
+                         }
+                         entity.spawnedViaMobSpawner = true; // Paper
++                        // Monumenta START
++                        if (!(entity instanceof net.minecraft.world.entity.FlyingMob || entity instanceof net.minecraft.world.entity.monster.Vex)) {
++                            entity.spawnerSpawnedBy = this;
++                        }
++                        // Monumenta END
++
+                         entity.spawnReason = org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER; // Paper
+                         flag = true; // Paper
+                         // Spigot Start
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/SpawnerBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/SpawnerBlockEntity.java
+index 1cb52df2ef42cfedf22f2c7524b75c00f7ced4cb..46b6a390596b532bd6b8ede5d7745c919158dcad 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/SpawnerBlockEntity.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/SpawnerBlockEntity.java
+@@ -31,6 +31,7 @@ public class SpawnerBlockEntity extends BlockEntity {
+ 
+     public SpawnerBlockEntity(BlockPos pos, BlockState state) {
+         super(BlockEntityType.MOB_SPAWNER, pos, state);
++        this.spawner.blockPos = pos; // Monumenta
+     }
+ 
+     @Override
