@@ -27,17 +27,17 @@ index c7e16e96633e17b951f0681599c5b3efc3ce1e6c..f502574bfb2c24bbfc8970196f6c7aad
 +                this.player.containerMenu instanceof net.minecraft.world.inventory.CraftingMenu ? ((CraftingMenu) this.player.containerMenu).craftSlots : null;
 +
 +        if (craftingContainer != null) {
-+            for (int k = 0; k < craftingContainer.getContainerSize(); ++k) {
-+                ItemStack item = craftingContainer.getItem(k);
++            for (int slotNum = 0; slotNum < craftingContainer.getContainerSize(); ++slotNum) {
++                ItemStack item = craftingContainer.getItem(slotNum);
 +
 +                if (!item.isEmpty() && shouldRemove.test(item)) {
-+                    int l = maxCount <= 0 ? item.getCount() : Math.min(maxCount - j, item.getCount());
++                    int countFromStack = maxCount <= 0 ? item.getCount() : Math.min(maxCount - j, item.getCount());
 +
-+                    j += l;
++                    j += countFromStack;
 +                    if (maxCount != 0) {
-+                        item.shrink(l);
++                        item.shrink(countFromStack);
 +                        if (item.isEmpty()) {
-+                            craftingContainer.setItem(k, ItemStack.EMPTY);
++                            craftingContainer.setItem(slotNum, ItemStack.EMPTY);
 +                        }
 +
 +                        if (maxCount > 0 && j >= maxCount) {
