@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Wed, 25 May 2022 12:01:25 +1000
+Subject: [PATCH] MONUMENTA - Improve Villager Trade Comparison
+
+
+diff --git a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
+index c9cb0717c2793acd5b5870a6cc4d672d69a40026..e61399aa24f711c1f25dcb6b6e887d906b3aa20c 100644
+--- a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
++++ b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
+@@ -2,6 +2,7 @@ package net.minecraft.world.item.trading;
+ 
+ import net.minecraft.nbt.CompoundTag;
+ import net.minecraft.nbt.NbtUtils;
++import net.minecraft.network.chat.Component;
+ import net.minecraft.util.Mth;
+ import net.minecraft.world.item.ItemStack;
+ 
+@@ -220,17 +221,51 @@ public class MerchantOffer {
+         return this.isRequiredItem(first, this.getCostA()) && first.getCount() >= this.getCostA().getCount() && this.isRequiredItem(second, this.costB) && second.getCount() >= this.costB.getCount();
+     }
+ 
++    /* MONUMENTA START
++     * Pops display.Name if plain.display.Name exists
+++    * Pops display.Lore if plain.display.Lore exists
+++    * Modifies the input item!
++     */
++    private void popDisplayIfPlain(ItemStack itemStack) {
++        CompoundTag display = itemStack.getTagElement("display");
++        if (display != null) {
++            CompoundTag plain = itemStack.getTagElement("plain");
++            if (plain != null) {
++                if (plain.contains("Name", 8)) {
++                    display.remove("Name");
++                }
++                if (plain.contains("Lore", 9)) {
++                    display.remove("Lore");
++                }
++            }
++        }
++    } // MONUMENTA END
++
+     private boolean isRequiredItem(ItemStack given, ItemStack sample) {
+         if (sample.isEmpty() && given.isEmpty()) {
+             return true;
+         } else {
++            /* MONUMENTA START
++             * Compare items by plain tag if present
++             * Ensure damage not present matches 0 damage
++             */
+             ItemStack itemstack2 = given.copy();
++            ItemStack sampleCopy = sample.copy();
+ 
+-            if (itemstack2.getItem().canBeDepleted()) {
++            if (itemstack2.getItem().canBeDepleted() && sampleCopy.getItem().canBeDepleted()) {
+                 itemstack2.setDamageValue(itemstack2.getDamageValue());
++                sampleCopy.setDamageValue(sampleCopy.getDamageValue());
++            }
++
++            // Don't compare the actual display.Name and display.Lore if plain variables are available
++            if (itemstack2.hasTag()) {
++                popDisplayIfPlain(itemstack2);
++            }
++            if (sampleCopy.hasTag()) {
++                popDisplayIfPlain(sampleCopy);
+             }
+ 
+-            return ItemStack.isSame(itemstack2, sample) && (!sample.hasTag() || itemstack2.hasTag() && NbtUtils.compareNbt(sample.getTag(), itemstack2.getTag(), false));
++            return ItemStack.isSame(itemstack2, sampleCopy) && (!sampleCopy.hasTag() || itemstack2.hasTag() && NbtUtils.compareNbt(sampleCopy.getTag(), itemstack2.getTag(), false));
+         }
+     }
+ 
