@@ -8,14 +8,6 @@ diff --git a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java b
 index c9cb0717c2793acd5b5870a6cc4d672d69a40026..e61399aa24f711c1f25dcb6b6e887d906b3aa20c 100644
 --- a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
 +++ b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
-@@ -2,6 +2,7 @@ package net.minecraft.world.item.trading;
- 
- import net.minecraft.nbt.CompoundTag;
- import net.minecraft.nbt.NbtUtils;
-+import net.minecraft.network.chat.Component;
- import net.minecraft.util.Mth;
- import net.minecraft.world.item.ItemStack;
- 
 @@ -220,17 +221,51 @@ public class MerchantOffer {
          return this.isRequiredItem(first, this.getCostA()) && first.getCount() >= this.getCostA().getCount() && this.isRequiredItem(second, this.costB) && second.getCount() >= this.costB.getCount();
      }
