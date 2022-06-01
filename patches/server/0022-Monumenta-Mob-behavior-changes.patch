@@ -1,0 +1,197 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Peter=20G=C3=BCttinger?= <njol@gmx.ch>
+Date: Wed, 1 Jun 2022 08:16:40 +0200
+Subject: [PATCH] Monumenta - Mob behavior changes
+
+- Drowned no longer convert naturally
+- Charged creepers no longer cause mob head drops
+- Skeletons can only shoot bows from main hand
+- Remove wither nether star drop
+- Giant AI
+- Increase Giant view distance
+- Endermen holding items are no longer always persistent
+
+diff --git a/src/main/java/net/minecraft/world/entity/animal/Animal.java b/src/main/java/net/minecraft/world/entity/animal/Animal.java
+index 2bc77858b4a78e24227b4b096fd44177202d5292..e51dce21781553a44cf4b49a4b5d5f4c3dc7fb83 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/Animal.java
++++ b/src/main/java/net/minecraft/world/entity/animal/Animal.java
+@@ -94,7 +94,7 @@ public abstract class Animal extends AgeableMob {
+ 
+     @Override
+     public float getWalkTargetValue(BlockPos pos, LevelReader world) {
+-        return world.getBlockState(pos.below()).is(Blocks.GRASS_BLOCK) ? 10.0F : world.getBrightness(pos) - 0.5F;
++        return super.getWalkTargetValue(pos, world); // Monumenta - use the default from EntityCreature with no grass block check
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
+index ede0ced64d74d71547d1b8bb6853c5aacc1b486a..89121c1e835a0e8a1d2e8eb50120fb848ba88a57 100644
+--- a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
++++ b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
+@@ -533,16 +533,17 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
+         }
+     }
+ 
+-    @Override
+-    protected void dropCustomDeathLoot(DamageSource source, int lootingMultiplier, boolean allowDrops) {
+-        super.dropCustomDeathLoot(source, lootingMultiplier, allowDrops);
+-        ItemEntity entityitem = this.spawnAtLocation((ItemLike) Items.NETHER_STAR);
+-
+-        if (entityitem != null) {
+-            entityitem.setExtendedLifetime();
+-        }
+-
+-    }
++    // MONUMENTA - don't drop nether stars
++//    @Override
++//    protected void dropCustomDeathLoot(DamageSource source, int lootingMultiplier, boolean allowDrops) {
++//        super.dropCustomDeathLoot(source, lootingMultiplier, allowDrops);
++//        ItemEntity entityitem = this.spawnAtLocation((ItemLike) Items.NETHER_STAR);
++//
++//        if (entityitem != null) {
++//            entityitem.setExtendedLifetime();
++//        }
++//
++//    }
+ 
+     @Override
+     public void checkDespawn() {
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Creeper.java b/src/main/java/net/minecraft/world/entity/monster/Creeper.java
+index c2dbe53f504327f153efe195c74ad28c1b89791f..7323081e406b2e86455cf8fdad74cac6356c950e 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Creeper.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Creeper.java
+@@ -324,7 +324,7 @@ public class Creeper extends Monster implements PowerableMob {
+     }
+ 
+     public boolean canDropMobsSkull() {
+-        return this.isPowered() && this.droppedSkulls < 1;
++        return false; // MONUMENTA - don't drop mob skulls
+     }
+ 
+     public void increaseDroppedSkulls() {
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+index d47002d45dabd66f38d25d398d8943f4b911cdc5..9505d0521aa8598dc04157749948d73b1fe45c57 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+@@ -432,7 +432,7 @@ public class EnderMan extends Monster implements NeutralMob {
+ 
+     @Override
+     public boolean requiresCustomPersistence() {
+-        return super.requiresCustomPersistence() || this.getCarriedBlock() != null;
++        return super.requiresCustomPersistence(); // MONUMENTA - ignore carrying item
+     }
+ 
+     private static class EndermanFreezeWhenLookedAt extends Goal {
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Giant.java b/src/main/java/net/minecraft/world/entity/monster/Giant.java
+index 6f5317c75cf9b7125fbe0a7b8d06d012c7379d91..169f0769de80021acd71e0bfd490a0bc6580088d 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Giant.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Giant.java
+@@ -1,13 +1,19 @@
+ package net.minecraft.world.entity.monster;
+ 
+ import net.minecraft.core.BlockPos;
++import net.minecraft.sounds.SoundEvent;
++import net.minecraft.sounds.SoundEvents;
++import net.minecraft.world.damagesource.DamageSource;
+ import net.minecraft.world.entity.EntityDimensions;
+ import net.minecraft.world.entity.EntityType;
++import net.minecraft.world.entity.MobType;
+ import net.minecraft.world.entity.Pose;
+ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+ import net.minecraft.world.entity.ai.attributes.Attributes;
++import net.minecraft.world.entity.player.Player;
+ import net.minecraft.world.level.Level;
+ import net.minecraft.world.level.LevelReader;
++import net.minecraft.world.level.block.state.BlockState;
+ 
+ public class Giant extends Monster {
+     public Giant(EntityType<? extends Giant> type, Level world) {
+@@ -27,4 +33,44 @@ public class Giant extends Monster {
+     public float getWalkTargetValue(BlockPos pos, LevelReader world) {
+         return world.getBrightness(pos) - 0.5F;
+     }
++
++    @Override
++    protected void registerGoals() {
++        this.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.LookAtPlayerGoal(this, Player.class, 8.0F));
++        this.goalSelector.addGoal(8, new net.minecraft.world.entity.ai.goal.RandomLookAroundGoal(this));
++        this.goalSelector.addGoal(7, new net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal(this, 1.0D));
++        this.goalSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.MeleeAttackGoal(this, 1.0D, false));
++
++        this.targetSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal(this, new Class[0]));
++        this.targetSelector.addGoal(2, new net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal<>(this, Player.class, true));
++    }
++
++    @Override
++    protected SoundEvent getAmbientSound() {
++        return SoundEvents.ZOMBIE_AMBIENT;
++    }
++
++    @Override
++    protected SoundEvent getHurtSound(DamageSource source) {
++        return SoundEvents.ZOMBIE_HURT;
++    }
++
++    @Override
++    public SoundEvent getDeathSound() {
++        return SoundEvents.ZOMBIE_DEATH;
++    }
++
++    protected SoundEvent getStepSound() {
++        return SoundEvents.ZOMBIE_STEP;
++    }
++
++    @Override
++    protected void playStepSound(BlockPos pos, BlockState state) {
++        this.playSound(this.getStepSound(), 0.15F, 0.3F);
++    }
++
++    @Override
++    public MobType getMobType() {
++        return MobType.UNDEAD;
++    }
+ }
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Zombie.java b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
+index 35f0203d260c11b729c30e6241316fda4b70bfd7..cf74f1d90113e2301e83f2dbc507ce7ba0a55dd7 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Zombie.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
+@@ -225,10 +225,11 @@ public class Zombie extends Monster {
+             } else if (this.convertsInWater()) {
+                 if (this.isEyeInFluid(FluidTags.WATER)) {
+                     ++this.inWaterTime;
+-                    if (this.inWaterTime >= 600) {
+-                        this.startUnderWaterConversion(300);
+-                        this.lastTick = MinecraftServer.currentTick; // Paper - Make sure this is set at start of process - GH-1887
+-                    }
++                    // Monumenta - disable drowned conversion
++//                    if (this.inWaterTime >= 600) {
++//                        this.startUnderWaterConversion(300);
++//                        this.lastTick = MinecraftServer.currentTick; // Paper - Make sure this is set at start of process - GH-1887
++//                    }
+                 } else {
+                     this.inWaterTime = -1;
+                 }
+diff --git a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
+index 60b1e42f7c6c358ed316e014d026005a1ec5bd0a..9728702cf081b9eec329a3a692fdfcdf120e7606 100644
+--- a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
++++ b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
+@@ -128,6 +128,7 @@ public final class ProjectileUtil {
+     }
+ 
+     public static InteractionHand getWeaponHoldingHand(LivingEntity entity, Item item) {
++        if (Items.BOW == item) return InteractionHand.MAIN_HAND; // MONUMENTA - Only allow mobs to use bows from mainhand
+         return entity.getMainHandItem().is(item) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+     }
+ 
+diff --git a/src/main/java/org/spigotmc/TrackingRange.java b/src/main/java/org/spigotmc/TrackingRange.java
+index e5bcbfe175a697e04886d04543e1278b7e83a184..ac486dd191efd75ab21552e45d0aac9fe30cbf86 100644
+--- a/src/main/java/org/spigotmc/TrackingRange.java
++++ b/src/main/java/org/spigotmc/TrackingRange.java
+@@ -25,6 +25,7 @@ public class TrackingRange
+             return defaultRange;
+         }
+         if (entity instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragon) return defaultRange; // Paper - enderdragon is exempt
++        if (entity instanceof net.minecraft.world.entity.monster.Giant) return 96; // Monumenta - Giants are visible from further away
+         SpigotWorldConfig config = entity.level.spigotConfig;
+         if ( entity instanceof ServerPlayer )
+         {
