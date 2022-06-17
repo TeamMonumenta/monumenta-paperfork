@@ -6,7 +6,7 @@ Subject: [PATCH] Monumenta - Standardize spawner behaviour for all entity
 
 
 diff --git a/src/main/java/net/minecraft/world/level/BaseSpawner.java b/src/main/java/net/minecraft/world/level/BaseSpawner.java
-index 03726227fdd60e9cf77213d50184abff438e01ef..5786cfa9019914fba48ffd019397b2344ade1807 100644
+index 03726227fdd60e9cf77213d50184abff438e01ef..499e7d04080ce77ac05b0236fe3a3845925baae2 100644
 --- a/src/main/java/net/minecraft/world/level/BaseSpawner.java
 +++ b/src/main/java/net/minecraft/world/level/BaseSpawner.java
 @@ -119,7 +119,7 @@ public abstract class BaseSpawner {
@@ -27,3 +27,12 @@ index 03726227fdd60e9cf77213d50184abff438e01ef..5786cfa9019914fba48ffd019397b234
                                  if (event.shouldAbortSpawn()) {
                                      break;
                                  }
+@@ -166,7 +166,7 @@ public abstract class BaseSpawner {
+                         if (entity instanceof Mob) {
+                             Mob entityinsentient = (Mob) entity;
+ 
+-                            if (this.nextSpawnData.getCustomSpawnRules().isEmpty() && !entityinsentient.checkSpawnRules(world, MobSpawnType.SPAWNER) || !entityinsentient.checkSpawnObstruction(world)) {
++                            if (this.nextSpawnData.getCustomSpawnRules().isEmpty() && !world.isUnobstructed(entityinsentient)) { // Monumenta - no mob-specific spawn checks
+                                 continue;
+                             }
+ 
