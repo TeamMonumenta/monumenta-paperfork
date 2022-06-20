@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Mon, 20 Jun 2022 19:33:37 +1000
+Subject: [PATCH] Monumenta - Remove bee death + neutral after sting
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/animal/Bee.java b/src/main/java/net/minecraft/world/entity/animal/Bee.java
+index 5a9d9926fb6fc356ee250d4e38f3bc303e280d45..8bf0b36b3793f687ad3040bef7977527c84bac92 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/Bee.java
++++ b/src/main/java/net/minecraft/world/entity/animal/Bee.java
+@@ -263,8 +263,9 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
+                 }
+             }
+ 
+-            this.setHasStung(true);
+-            this.stopBeingAngry();
++            // MONUMENTA - Remove Bee dying + neutral after sting
++            // this.setHasStung(true);
++            // this.stopBeingAngry();
+             this.playSound(SoundEvents.BEE_STING, 1.0F, 1.0F);
+         }
+ 
