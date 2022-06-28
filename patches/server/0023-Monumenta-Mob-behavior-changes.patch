@@ -83,7 +83,7 @@ index d47002d45dabd66f38d25d398d8943f4b911cdc5..9505d0521aa8598dc04157749948d73b
  
      private static class EndermanFreezeWhenLookedAt extends Goal {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Giant.java b/src/main/java/net/minecraft/world/entity/monster/Giant.java
-index 6f5317c75cf9b7125fbe0a7b8d06d012c7379d91..169f0769de80021acd71e0bfd490a0bc6580088d 100644
+index 6f5317c75cf9b7125fbe0a7b8d06d012c7379d91..878d4c0006fe6ad7d150e34795f1d9ac4b09d3c4 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Giant.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/Giant.java
 @@ -1,13 +1,19 @@
@@ -172,7 +172,7 @@ index 35f0203d260c11b729c30e6241316fda4b70bfd7..cf74f1d90113e2301e83f2dbc507ce7b
                      this.inWaterTime = -1;
                  }
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
-index 60b1e42f7c6c358ed316e014d026005a1ec5bd0a..9728702cf081b9eec329a3a692fdfcdf120e7606 100644
+index 60b1e42f7c6c358ed316e014d026005a1ec5bd0a..c1d7adcba2bc5ced0e5cbd114ca75a1eaae08d5d 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
 @@ -128,6 +128,7 @@ public final class ProjectileUtil {
