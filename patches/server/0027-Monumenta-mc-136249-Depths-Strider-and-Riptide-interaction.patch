@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Wed, 27 Jul 2022 00:33:08 -0400
+Subject: [PATCH] Monumenta - mc-136249 Depths Strider and Riptide interaction
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index 02055e3bc0fc0c98f75e661149e841f46bae0e15..9963556a13dc7f5fd029e7b752e8ef68dd847170 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -245,7 +245,7 @@ public abstract class LivingEntity extends Entity {
+     @Nullable
+     private DamageSource lastDamageSource;
+     private long lastDamageStamp;
+-    protected int autoSpinAttackTicks;
++    public int autoSpinAttackTicks;
+     private float swimAmount;
+     private float swimAmountO;
+     protected Brain<?> brain;
+diff --git a/src/main/java/net/minecraft/world/item/enchantment/EnchantmentHelper.java b/src/main/java/net/minecraft/world/item/enchantment/EnchantmentHelper.java
+index 7bc5aa35b52de0027cf58a6127a9903464ccaf47..92bb7b9e38dfdb6be211ecfcb30cf1850ce687cb 100644
+--- a/src/main/java/net/minecraft/world/item/enchantment/EnchantmentHelper.java
++++ b/src/main/java/net/minecraft/world/item/enchantment/EnchantmentHelper.java
+@@ -219,6 +219,10 @@ public class EnchantmentHelper {
+     }
+ 
+     public static int getDepthStrider(LivingEntity entity) {
++        // https://github.com/j-tai/TieFix/blob/v1.10.0/src/main/java/ca/jtai/tiefix/mixin/mc136249/LivingEntityMixin.java
++        if (entity.autoSpinAttackTicks > 0) {
++            return 0;
++        }
+         return getEnchantmentLevel(Enchantments.DEPTH_STRIDER, entity);
+     }
+ 
