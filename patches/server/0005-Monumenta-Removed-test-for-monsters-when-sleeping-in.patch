@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Removed test for monsters when sleeping in beds
 
 
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index b6f9c99d580d985f2b84efaa655d9ae40073e72b..d5afe47b7fd6b21d0dab208c463d0c8d0483c8f3 100644
+index 22452aa7eefa350c3b0d0d19a23c76c8ec811de3..b540c45b4beae7a9278f5c7d1f271331af166485 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-@@ -1280,19 +1280,6 @@ public class ServerPlayer extends Player {
+@@ -1285,19 +1285,6 @@ public class ServerPlayer extends Player {
                  if (this.level.isDay()) {
                      return Either.left(Player.BedSleepingProblem.NOT_POSSIBLE_NOW);
                  } else {

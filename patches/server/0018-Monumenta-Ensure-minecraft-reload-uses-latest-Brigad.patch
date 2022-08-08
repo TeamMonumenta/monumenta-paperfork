@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Byron Marohn <Combustible@live.com>
+Date: Fri, 29 Apr 2022 21:28:48 -0700
+Subject: [PATCH] Monumenta - Ensure minecraft:reload uses latest Brigadier
+ CommandDispatcher
+
+Signed-off-by: Byron Marohn <Combustible@live.com>
+
+diff --git a/src/main/java/net/minecraft/server/ReloadableServerResources.java b/src/main/java/net/minecraft/server/ReloadableServerResources.java
+index 550704720172d3fbcf8b47b3c596d0a76ec06313..86dfa61055a5fa1749cbd0f2aecafe1d00705327 100644
+--- a/src/main/java/net/minecraft/server/ReloadableServerResources.java
++++ b/src/main/java/net/minecraft/server/ReloadableServerResources.java
+@@ -35,10 +35,16 @@ public class ReloadableServerResources {
+     private final ItemModifierManager itemModifierManager = new ItemModifierManager(this.predicateManager, this.lootTables);
+     private final ServerAdvancementManager advancements = new ServerAdvancementManager(this.predicateManager);
+     private final ServerFunctionLibrary functionLibrary;
++    private static Commands staticCommands = null; // MONUMENTA
+ 
+     public ReloadableServerResources(RegistryAccess.Frozen dynamicRegistryManager, Commands.CommandSelection commandEnvironment, int functionPermissionLevel) {
+         this.tagManager = new TagManager(dynamicRegistryManager);
+-        this.commands = new Commands(commandEnvironment);
++        // MONUMENTA START
++        if (staticCommands == null) {
++            staticCommands = new Commands(commandEnvironment);
++        }
++        this.commands = staticCommands;
++        // MONUMENTA END
+         this.functionLibrary = new ServerFunctionLibrary(functionPermissionLevel, this.commands.getDispatcher());
+     }
+ 
+diff --git a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
+index 9f3346073e092134a33119785d4e73fecf858abf..be05efc2ab542d4b51e0fc9c58c6fbe9e164de96 100644
+--- a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
++++ b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
+@@ -42,6 +42,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+     private volatile Map<ResourceLocation, Tag<CommandFunction>> tags = Map.of();
+     private final int functionCompilationLevel;
+     private final CommandDispatcher<CommandSourceStack> dispatcher;
++    private static boolean initialFunctionLoad = true; // MONUMENTA
+ 
+     public Optional<CommandFunction> getFunction(ResourceLocation id) {
+         return Optional.ofNullable(this.functions.get(id));
+@@ -71,7 +72,14 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+         }, prepareExecutor);
+         CompletableFuture<Map<ResourceLocation, CompletableFuture<CommandFunction>>> completableFuture2 = CompletableFuture.supplyAsync(() -> {
+             return manager.listResources("functions", (path) -> {
+-                return path.endsWith(".mcfunction");
++                // MONUMENTA START
++                // Don't load functions the first time the server starts up
++                if (initialFunctionLoad) {
++                    return false;
++                } else {
++                    return path.endsWith(".mcfunction");
++                }
++                // MONUMENTA END
+             });
+         }, prepareExecutor).thenCompose((ids) -> {
+             Map<ResourceLocation, CompletableFuture<CommandFunction>> map = Maps.newHashMap();
+@@ -107,6 +115,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+             });
+             this.functions = builder.build();
+             this.tags = this.tagsLoader.build((Map)intermediate.getFirst());
++            initialFunctionLoad = false;
+         }, applyExecutor);
+     }
+ 

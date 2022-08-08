@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Disable mob dismounting underwater
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 5f3cea1a6c2df02dd6241ce2f78c66fbf3298ac6..02055e3bc0fc0c98f75e661149e841f46bae0e15 100644
+index b9b7ed77fc2ad890c4bfde4b265720fc2623c36a..6933d267ada333dcddc68c78cc99bb7deab903e5 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -430,9 +430,10 @@ public abstract class LivingEntity extends Entity {
+@@ -432,9 +432,10 @@ public abstract class LivingEntity extends Entity {
                      }
                  }
  
