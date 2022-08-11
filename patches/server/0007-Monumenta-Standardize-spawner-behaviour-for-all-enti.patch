@@ -6,7 +6,7 @@ Subject: [PATCH] Monumenta - Standardize spawner behaviour for all entity
 
 
 diff --git a/src/main/java/net/minecraft/world/level/BaseSpawner.java b/src/main/java/net/minecraft/world/level/BaseSpawner.java
-index 03726227fdd60e9cf77213d50184abff438e01ef..499e7d04080ce77ac05b0236fe3a3845925baae2 100644
+index 03726227fdd60e9cf77213d50184abff438e01ef..487789e1ca7c87d02acd90cc1ad59b42e8aa29d4 100644
 --- a/src/main/java/net/minecraft/world/level/BaseSpawner.java
 +++ b/src/main/java/net/minecraft/world/level/BaseSpawner.java
 @@ -119,7 +119,7 @@ public abstract class BaseSpawner {
@@ -18,15 +18,16 @@ index 03726227fdd60e9cf77213d50184abff438e01ef..499e7d04080ce77ac05b0236fe3a3845
                              continue;
                          }
                          // Paper start
-@@ -135,7 +135,7 @@ public abstract class BaseSpawner {
+@@ -135,8 +135,8 @@ public abstract class BaseSpawner {
                                  net.minecraft.server.MCUtil.toLocation(world, pos)
                              );
                              if (!event.callEvent()) {
 -                                flag = true;
-+                                flag = event.shouldAbortSpawn(); // Monumenta - don't delay the spawner if the event is cancelled, except if shouldAbortSpawn is set
                                  if (event.shouldAbortSpawn()) {
++                                    flag = true; // Monumenta - don't delay the spawner if the event is cancelled, except if shouldAbortSpawn is set
                                      break;
                                  }
+                                 continue;
 @@ -166,7 +166,7 @@ public abstract class BaseSpawner {
                          if (entity instanceof Mob) {
                              Mob entityinsentient = (Mob) entity;
