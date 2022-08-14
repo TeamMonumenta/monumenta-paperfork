@@ -7,10 +7,10 @@ Subject: [PATCH] Monumenta - Move spawnpoint set for sleeping in bed after
 Signed-off-by: Byron Marohn <combustible@live.com>
 
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index d5afe47b7fd6b21d0dab208c463d0c8d0483c8f3..e520f70d29bbeb243548fad41bed89d37d83f117 100644
+index b540c45b4beae7a9278f5c7d1f271331af166485..41782d1a40f93d6d2c77dea8e573fd730e7ceb0c 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-@@ -1276,12 +1276,7 @@ public class ServerPlayer extends Player {
+@@ -1281,12 +1281,7 @@ public class ServerPlayer extends Player {
              } else if (this.bedBlocked(blockposition, enumdirection)) {
                  return Either.left(Player.BedSleepingProblem.OBSTRUCTED);
              } else {
@@ -24,7 +24,7 @@ index d5afe47b7fd6b21d0dab208c463d0c8d0483c8f3..e520f70d29bbeb243548fad41bed89d3
              }
          } else {
              return Either.left(Player.BedSleepingProblem.OTHER_PROBLEM);
-@@ -1306,6 +1301,8 @@ public class ServerPlayer extends Player {
+@@ -1311,6 +1306,8 @@ public class ServerPlayer extends Player {
              return bedResult;
          }
  

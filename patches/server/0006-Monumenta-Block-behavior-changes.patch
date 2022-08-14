@@ -33,10 +33,10 @@ index 3d2b34c5a7c9b00c1164b4f89c2cbff81fc460eb..5cebb1a4e6df863d579d37de90ed70d6
  
      @Nullable
 diff --git a/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java b/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
-index 0ccdcf43d208e3d35b5e6fcd04245b29012d828c..a1e4e5ea3719614b55358b271b30e06d5268dbc7 100644
+index 065525e8ce46c12cdfa1d5d06fb96ea4654e95a3..bbb977fe0c92fc2bdc49d51ff696034b53291a38 100644
 --- a/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
-@@ -61,7 +61,7 @@ public class ConcretePowderBlock extends FallingBlock {
+@@ -60,7 +60,7 @@ public class ConcretePowderBlock extends FallingBlock {
      }
  
      private static boolean shouldSolidify(BlockGetter world, BlockPos pos, BlockState state) {
@@ -45,20 +45,20 @@ index 0ccdcf43d208e3d35b5e6fcd04245b29012d828c..a1e4e5ea3719614b55358b271b30e06d
      }
  
      private static boolean touchesLiquid(BlockGetter world, BlockPos pos) {
-@@ -88,7 +88,7 @@ public class ConcretePowderBlock extends FallingBlock {
+@@ -87,7 +87,7 @@ public class ConcretePowderBlock extends FallingBlock {
      }
  
      private static boolean canSolidify(BlockState state) {
--        return state.getFluidState().is((Tag) FluidTags.WATER);
+-        return state.getFluidState().is(FluidTags.WATER);
 +        return false;
      }
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralBlock.java b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
-index 3b1dd57d266bdaa617ec4013b39ebbf608e08f1f..57b4e98cad3c790c358869d367ea8c3fb68dfa3b 100644
+index 4634bec1b34ee2d28b4b732f7a4d6077d454c195..bbd4ac7482f2bca7caa93b2db25923bc2dc974ea 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
-@@ -46,19 +46,7 @@ public class CoralBlock extends Block {
+@@ -45,19 +45,7 @@ public class CoralBlock extends Block {
      }
  
      protected boolean scanForWater(BlockGetter world, BlockPos pos) {
@@ -69,7 +69,7 @@ index 3b1dd57d266bdaa617ec4013b39ebbf608e08f1f..57b4e98cad3c790c358869d367ea8c3f
 -            Direction enumdirection = aenumdirection[j];
 -            FluidState fluid = world.getFluidState(pos.relative(enumdirection));
 -
--            if (fluid.is((Tag) FluidTags.WATER)) {
+-            if (fluid.is(FluidTags.WATER)) {
 -                return true;
 -            }
 -        }
