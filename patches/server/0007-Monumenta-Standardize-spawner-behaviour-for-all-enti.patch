@@ -6,7 +6,7 @@ Subject: [PATCH] Monumenta - Standardize spawner behaviour for all entity
 
 
 diff --git a/src/main/java/net/minecraft/world/level/BaseSpawner.java b/src/main/java/net/minecraft/world/level/BaseSpawner.java
-index 03726227fdd60e9cf77213d50184abff438e01ef..487789e1ca7c87d02acd90cc1ad59b42e8aa29d4 100644
+index 4bfebbb2e87464cd47a38a5da6275b2c662fa052..6f88df36b9964ea594dd088b21a5e9704928c1b5 100644
 --- a/src/main/java/net/minecraft/world/level/BaseSpawner.java
 +++ b/src/main/java/net/minecraft/world/level/BaseSpawner.java
 @@ -119,7 +119,7 @@ public abstract class BaseSpawner {

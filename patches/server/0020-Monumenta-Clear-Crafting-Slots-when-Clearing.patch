@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Ong <ongjiaming2001@gmail.com>
 Date: Tue, 24 May 2022 18:58:19 +1000
-Subject: [PATCH] Monumenta [10/26] - Clear Crafting Slots when Clearing
+Subject: [PATCH] Monumenta - Clear Crafting Slots when Clearing
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/player/Inventory.java b/src/main/java/net/minecraft/world/entity/player/Inventory.java
-index c7e16e96633e17b951f0681599c5b3efc3ce1e6c..f502574bfb2c24bbfc8970196f6c7aad924ff10b 100644
+index b770e7840b00b46a127ae05cc872a21f7a2dffad..ed2228ac52aa462716e332261b02bcf83102623f 100644
 --- a/src/main/java/net/minecraft/world/entity/player/Inventory.java
 +++ b/src/main/java/net/minecraft/world/entity/player/Inventory.java
 @@ -21,6 +21,8 @@ import net.minecraft.world.Nameable;
@@ -17,7 +17,7 @@ index c7e16e96633e17b951f0681599c5b3efc3ce1e6c..f502574bfb2c24bbfc8970196f6c7aad
  import net.minecraft.world.item.ArmorItem;
  import net.minecraft.world.item.Item;
  import net.minecraft.world.item.ItemStack;
-@@ -260,6 +262,34 @@ public class Inventory implements Container, Nameable {
+@@ -254,6 +256,34 @@ public class Inventory implements Container, Nameable {
              this.player.containerMenu.setCarried(ItemStack.EMPTY);
          }
  

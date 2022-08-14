@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Remove bee death + neutral after sting
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/Bee.java b/src/main/java/net/minecraft/world/entity/animal/Bee.java
-index 5a9d9926fb6fc356ee250d4e38f3bc303e280d45..8bf0b36b3793f687ad3040bef7977527c84bac92 100644
+index 79a9fa2a2257925685e45329365d2828ccd4c48c..48fa36f8e0b464b5ff4c54820be006da3e27cf9d 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/Bee.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/Bee.java
-@@ -263,8 +263,9 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
+@@ -261,8 +261,9 @@ public class Bee extends Animal implements NeutralMob, FlyingAnimal {
                  }
              }
  

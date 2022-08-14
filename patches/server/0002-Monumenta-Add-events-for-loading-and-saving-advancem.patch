@@ -6,12 +6,12 @@ Subject: [PATCH] Monumenta - Add events for loading and saving advancement
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerAdvancements.java b/src/main/java/net/minecraft/server/PlayerAdvancements.java
-index f7959fe8d5247504dd79a18010470d98781c7cfe..38da43659c3304f9b61b16111c475e053ca9e973 100644
+index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b66d619a52 100644
 --- a/src/main/java/net/minecraft/server/PlayerAdvancements.java
 +++ b/src/main/java/net/minecraft/server/PlayerAdvancements.java
 @@ -56,7 +56,7 @@ public class PlayerAdvancements {
  
-     private static final Logger LOGGER = LogManager.getLogger();
+     private static final Logger LOGGER = LogUtils.getLogger();
      private static final int VISIBILITY_DEPTH = 2;
 -    private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(AdvancementProgress.class, new AdvancementProgress.Serializer()).registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer()).setPrettyPrinting().create();
 +    private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(AdvancementProgress.class, new AdvancementProgress.Serializer()).registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer()).create(); // MONUMENTA
