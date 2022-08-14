@@ -27,10 +27,10 @@ index 70a3db78c4913c14f39ddee39e5fcdd0e741c971..6be68d2a0d69714f630fee60e194abd2
  
      public static ImmutableList<Pair<Integer, ? extends Behavior<? super Villager>>> getPanicPackage(VillagerProfession profession, float speed) {
 diff --git a/src/main/java/net/minecraft/world/entity/npc/Villager.java b/src/main/java/net/minecraft/world/entity/npc/Villager.java
-index ea612b3c3ed7305b504d65eb6d38ed99547fd488..302cf90f816395e5425711c0597d74d4c2b7a378 100644
+index 268524e256a034520438d5c825e5e419d72d29ce..7418b23f7847e7b2e1dea5fcfd0539f94e6c8271 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/Villager.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/Villager.java
-@@ -145,7 +145,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
+@@ -147,7 +147,7 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
      public Villager(EntityType<? extends Villager> entityType, Level world, VillagerType type) {
          super(entityType, world);
          this.gossips = new GossipContainer();
@@ -39,7 +39,7 @@ index ea612b3c3ed7305b504d65eb6d38ed99547fd488..302cf90f816395e5425711c0597d74d4
          this.getNavigation().setCanFloat(true);
          this.setCanPickUpLoot(true);
          this.setVillagerData(this.getVillagerData().setType(type).setProfession(VillagerProfession.NONE));
-@@ -180,22 +180,8 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
+@@ -182,22 +182,8 @@ public class Villager extends AbstractVillager implements ReputationEventHandler
      private void registerBrainGoals(Brain<Villager> brain) {
          VillagerProfession villagerprofession = this.getVillagerData().getProfession();
  
@@ -63,10 +63,10 @@ index ea612b3c3ed7305b504d65eb6d38ed99547fd488..302cf90f816395e5425711c0597d74d4
          brain.setDefaultActivity(Activity.IDLE);
          brain.setActiveActivityIfPossible(Activity.IDLE);
 diff --git a/src/main/java/net/minecraft/world/entity/npc/WanderingTrader.java b/src/main/java/net/minecraft/world/entity/npc/WanderingTrader.java
-index 642279bb7e15db9f662094ffd6ded2e3c7af3fd6..ed8f42f3200b2d6b4ba662a97bf2d69026a22f26 100644
+index 86e1ba898d6b92735258419fa74352e5116226dc..18733984743f6255960f71e23925329c8dd22745 100644
 --- a/src/main/java/net/minecraft/world/entity/npc/WanderingTrader.java
 +++ b/src/main/java/net/minecraft/world/entity/npc/WanderingTrader.java
-@@ -70,26 +70,8 @@ public class WanderingTrader extends net.minecraft.world.entity.npc.AbstractVill
+@@ -69,26 +69,8 @@ public class WanderingTrader extends net.minecraft.world.entity.npc.AbstractVill
      @Override
      protected void registerGoals() {
          this.goalSelector.addGoal(0, new FloatGoal(this));

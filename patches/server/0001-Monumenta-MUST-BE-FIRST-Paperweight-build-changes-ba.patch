@@ -6,10 +6,10 @@ Subject: [PATCH] Monumenta - MUST BE FIRST - Paperweight build changes based
 
 
 diff --git a/build.gradle.kts b/build.gradle.kts
-index 028f6a1795ceb99d1760c73b0980238677b4b8bc..d5367a5a88a7e72c23b439fc9ffce4608c878c6d 100644
+index 0282e3b75470e1a68ea1fc228082483514ba432e..ab27a1702dc95c4cbd4fa17b85c9eeffab3c58e1 100644
 --- a/build.gradle.kts
 +++ b/build.gradle.kts
-@@ -18,8 +18,12 @@ repositories {
+@@ -9,8 +9,12 @@ plugins {
  }
  
  dependencies {
@@ -17,14 +17,14 @@ index 028f6a1795ceb99d1760c73b0980238677b4b8bc..d5367a5a88a7e72c23b439fc9ffce460
 -    implementation(project(":paper-mojangapi"))
 +    // Monumenta start
 +    implementation(project(":monumenta-api"))
-+    implementation("io.papermc.paper:paper-mojangapi:1.18-R0.1-SNAPSHOT") {
++    implementation("io.papermc.paper:paper-mojangapi:1.18.2-R0.1-SNAPSHOT") {
 +        exclude("io.papermc.paper", "paper-api")
 +    }
 +    // Monumenta end
      // Paper start
      implementation("org.jline:jline-terminal-jansi:3.21.0")
      implementation("net.minecrell:terminalconsoleappender:1.3.0")
-@@ -68,7 +72,7 @@ tasks.jar {
+@@ -60,7 +64,7 @@ tasks.jar {
          attributes(
              "Main-Class" to "org.bukkit.craftbukkit.Main",
              "Implementation-Title" to "CraftBukkit",
@@ -33,20 +33,20 @@ index 028f6a1795ceb99d1760c73b0980238677b4b8bc..d5367a5a88a7e72c23b439fc9ffce460
              "Implementation-Vendor" to date, // Paper
              "Specification-Title" to "Bukkit",
              "Specification-Version" to project.version,
-@@ -156,7 +160,7 @@ fun TaskContainer.registerRunTask(
+@@ -148,7 +152,7 @@ fun TaskContainer.registerRunTask(
      name: String,
      block: JavaExec.() -> Unit
  ): TaskProvider<JavaExec> = register<JavaExec>(name) {
 -    group = "paper"
-+    group = "paperweight"
++    group = "paperweight" // Monumenta Fork
      mainClass.set("org.bukkit.craftbukkit.Main")
      standardInput = System.`in`
      workingDir = rootProject.layout.projectDirectory
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index c4e8e6af67b57406012612b617a7dcaa6e391d09..b43172f4091535b3bdeb74c7acb8f38919669c9e 100644
+index da15a224b8b974e78b9d8d5f514229b3b2a5a63e..8e1197d863d586a0774edacba333bad3e9888602 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -1709,7 +1709,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -1696,7 +1696,7 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
  
      @DontObfuscate
      public String getServerModName() {
@@ -56,10 +56,10 @@ index c4e8e6af67b57406012612b617a7dcaa6e391d09..b43172f4091535b3bdeb74c7acb8f389
  
      public SystemReport fillSystemReport(SystemReport details) {
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftServer.java b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-index 54e8f0f367645f3aa8af5b1cb69c39c0cec9381f..7e090802c459fa566db3610ea95e84e26a7ed247 100644
+index 8a248e34fce1e04de4460f98b7627df495c66af1..d13f4a526c52f6baab29f94d4e9571699a5e8503 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftServer.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftServer.java
-@@ -254,7 +254,7 @@ import javax.annotation.Nullable; // Paper
+@@ -249,7 +249,7 @@ import javax.annotation.Nullable; // Paper
  import javax.annotation.Nonnull; // Paper
  
  public final class CraftServer implements Server {

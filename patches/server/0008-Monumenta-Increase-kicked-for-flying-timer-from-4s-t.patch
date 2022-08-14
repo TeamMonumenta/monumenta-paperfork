@@ -6,19 +6,19 @@ Subject: [PATCH] Monumenta - Increase kicked-for-flying timer from 4s to 6s
 Signed-off-by: Byron Marohn <combustible@live.com>
 
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 926d0a80cbb55184955ac6720948d2e86683cc57..e77f3035022f1f1eaf56469806c385d1aa004054 100644
+index 9df5b678ce4343d0bb54133393f6bbe40fe5366b..53a9cd87a62c03183109d7528626b4468a669e6b 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -319,7 +319,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
+@@ -316,7 +316,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
          ++this.tickCount;
          this.knownMovePacketCount = this.receivedMovePacketCount;
-         if (this.clientIsFloating && !this.player.isSleeping()) {
+         if (this.clientIsFloating && !this.player.isSleeping() && !this.player.isPassenger()) {
 -            if (++this.aboveGroundTickCount > 80) {
 +            if (++this.aboveGroundTickCount > 120) {
                  ServerGamePacketListenerImpl.LOGGER.warn("{} was kicked for floating too long!", this.player.getName().getString());
                  this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_PLAYER); // Paper - use configurable kick message & kick event cause
                  return;
-@@ -338,7 +338,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
+@@ -335,7 +335,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
              this.vehicleLastGoodY = this.lastVehicle.getY();
              this.vehicleLastGoodZ = this.lastVehicle.getZ();
              if (this.clientVehicleIsFloating && this.player.getRootVehicle().getControllingPassenger() == this.player) {
