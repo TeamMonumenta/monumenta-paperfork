@@ -29,10 +29,10 @@ index 550704720172d3fbcf8b47b3c596d0a76ec06313..86dfa61055a5fa1749cbd0f2aecafe1d
      }
  
 diff --git a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
-index 9f3346073e092134a33119785d4e73fecf858abf..be05efc2ab542d4b51e0fc9c58c6fbe9e164de96 100644
+index b108aa19c48fd8d9226e67c7b1ad546fbf14288c..1ac39c31d1be973980e8520ddc8fb9d1c6eb2e68 100644
 --- a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
 +++ b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
-@@ -42,6 +42,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+@@ -41,6 +41,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
      private volatile Map<ResourceLocation, Tag<CommandFunction>> tags = Map.of();
      private final int functionCompilationLevel;
      private final CommandDispatcher<CommandSourceStack> dispatcher;
@@ -40,7 +40,7 @@ index 9f3346073e092134a33119785d4e73fecf858abf..be05efc2ab542d4b51e0fc9c58c6fbe9
  
      public Optional<CommandFunction> getFunction(ResourceLocation id) {
          return Optional.ofNullable(this.functions.get(id));
-@@ -71,7 +72,14 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+@@ -70,7 +71,14 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
          }, prepareExecutor);
          CompletableFuture<Map<ResourceLocation, CompletableFuture<CommandFunction>>> completableFuture2 = CompletableFuture.supplyAsync(() -> {
              return manager.listResources("functions", (path) -> {
@@ -56,7 +56,7 @@ index 9f3346073e092134a33119785d4e73fecf858abf..be05efc2ab542d4b51e0fc9c58c6fbe9
              });
          }, prepareExecutor).thenCompose((ids) -> {
              Map<ResourceLocation, CompletableFuture<CommandFunction>> map = Maps.newHashMap();
-@@ -107,6 +115,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
+@@ -106,6 +114,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
              });
              this.functions = builder.build();
              this.tags = this.tagsLoader.build((Map)intermediate.getFirst());

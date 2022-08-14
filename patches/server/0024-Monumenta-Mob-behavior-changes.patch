@@ -12,10 +12,10 @@ Subject: [PATCH] Monumenta - Mob behavior changes
 - Endermen holding items are no longer always persistent
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/Animal.java b/src/main/java/net/minecraft/world/entity/animal/Animal.java
-index 3d76b91f43fb2d261e270ba52fafe2648ba6abc9..bc021f54a40475e76035b6df35f54cfee7586887 100644
+index 3f57ad6cbf29ebe1ac3781368c4f57efc9640aa4..b7474d9d7ba6d451a4e3f4b220dfd5e39218c3fa 100644
 --- a/src/main/java/net/minecraft/world/entity/animal/Animal.java
 +++ b/src/main/java/net/minecraft/world/entity/animal/Animal.java
-@@ -93,7 +93,7 @@ public abstract class Animal extends AgeableMob {
+@@ -92,7 +92,7 @@ public abstract class Animal extends AgeableMob {
  
      @Override
      public float getWalkTargetValue(BlockPos pos, LevelReader world) {
@@ -152,7 +152,7 @@ index 0d578ab12c874bd2daccc4322a3fe1abafa4bc18..7fb5a3ff51e1399024ae78c315251e8b
 +    }
  }
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Zombie.java b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
-index a6e8f0ddbf17711a10f9853ec4a01291f96f6f06..d87cf35cead66e6c6a053aae7b6bd6d2a6eab472 100644
+index cd88413f30632307faba63572915656b6a8469f7..d0db3dae0ffe1edd710d76cf28c9bedadfcb1b75 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Zombie.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
 @@ -225,10 +225,11 @@ public class Zombie extends Monster {

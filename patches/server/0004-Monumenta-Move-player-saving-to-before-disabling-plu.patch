@@ -6,10 +6,10 @@ Subject: [PATCH] Monumenta - Move player saving to before disabling plugins
 Signed-off-by: Byron Marohn <combustible@live.com>
 
 diff --git a/src/main/java/net/minecraft/server/MinecraftServer.java b/src/main/java/net/minecraft/server/MinecraftServer.java
-index 020dc7113f04460d45accce341e6c42f2e2a668d..75e1e26fb37ed130f17c9dba0632900d90ca8f48 100644
+index 8e1197d863d586a0774edacba333bad3e9888602..b9d022686d8b04af7b5478f33b91be3c2327db34 100644
 --- a/src/main/java/net/minecraft/server/MinecraftServer.java
 +++ b/src/main/java/net/minecraft/server/MinecraftServer.java
-@@ -966,6 +966,13 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -967,6 +967,13 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
          // CraftBukkit end
          MinecraftServer.LOGGER.info("Stopping server");
          MinecraftTimings.stopServer(); // Paper
@@ -23,7 +23,7 @@ index 020dc7113f04460d45accce341e6c42f2e2a668d..75e1e26fb37ed130f17c9dba0632900d
          // CraftBukkit start
          if (this.server != null) {
              this.server.disablePlugins();
-@@ -976,14 +983,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
+@@ -977,14 +984,6 @@ public abstract class MinecraftServer extends ReentrantBlockableEventLoop<TickTa
              this.getConnection().stop();
          }
  
