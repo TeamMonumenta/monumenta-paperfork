@@ -10,6 +10,7 @@ Subject: [PATCH] Monumenta - Mob behavior changes
 - Giant AI
 - Increase Giant view distance
 - Endermen holding items are no longer always persistent
+- Endermen can be hurt by projectiles if their teleportation is cancelled
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/Animal.java b/src/main/java/net/minecraft/world/entity/animal/Animal.java
 index 3f57ad6cbf29ebe1ac3781368c4f57efc9640aa4..b7474d9d7ba6d451a4e3f4b220dfd5e39218c3fa 100644
@@ -70,10 +71,22 @@ index f9193f8cd3b0d0e689a523c7142a897c342c2931..a2bfb690663d22526cb98594d41966f2
  
      public void increaseDroppedSkulls() {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
-index 411eb4d495907aa1d646673bf07d56ff01e52eee..cf37fb6769baa3418e382c072f0eeaacf40769c7 100644
+index 411eb4d495907aa1d646673bf07d56ff01e52eee..44928cd4b05e589362475adc2756a111c9e97251 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
-@@ -441,7 +441,7 @@ public class EnderMan extends Monster implements NeutralMob {
+@@ -394,9 +394,10 @@ public class EnderMan extends Monster implements NeutralMob {
+                     return true;
+                 }
+             }
++            return flag;
+             } // Paper end
+ 
+-            return flag;
++            return flag || super.hurt(source, amount); // Monumenta: allow Endermen to be hurt by projectiles if their teleportation is cancelled
+         } else {
+             boolean flag1 = super.hurt(source, amount);
+ 
+@@ -441,7 +442,7 @@ public class EnderMan extends Monster implements NeutralMob {
  
      @Override
      public boolean requiresCustomPersistence() {
