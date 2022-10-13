@@ -11,6 +11,7 @@ Subject: [PATCH] Monumenta - Mob behavior changes
 - Increase Giant view distance
 - Endermen holding items are no longer always persistent
 - Endermen can be hurt by projectiles if their teleportation is cancelled
+- Closed Shulkers can be hurt by arrows
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/Animal.java b/src/main/java/net/minecraft/world/entity/animal/Animal.java
 index 3f57ad6cbf29ebe1ac3781368c4f57efc9640aa4..b7474d9d7ba6d451a4e3f4b220dfd5e39218c3fa 100644
@@ -96,7 +97,7 @@ index 411eb4d495907aa1d646673bf07d56ff01e52eee..44928cd4b05e589362475adc2756a111
  
      private static class EndermanFreezeWhenLookedAt extends Goal {
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Giant.java b/src/main/java/net/minecraft/world/entity/monster/Giant.java
-index 0d578ab12c874bd2daccc4322a3fe1abafa4bc18..7fb5a3ff51e1399024ae78c315251e8bbefca525 100644
+index 6f5317c75cf9b7125fbe0a7b8d06d012c7379d91..878d4c0006fe6ad7d150e34795f1d9ac4b09d3c4 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Giant.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/Giant.java
 @@ -1,13 +1,19 @@
@@ -164,6 +165,30 @@ index 0d578ab12c874bd2daccc4322a3fe1abafa4bc18..7fb5a3ff51e1399024ae78c315251e8b
 +        return MobType.UNDEAD;
 +    }
  }
+diff --git a/src/main/java/net/minecraft/world/entity/monster/Shulker.java b/src/main/java/net/minecraft/world/entity/monster/Shulker.java
+index 4992f088cc71b1b30df5f5b0d205f4d174bfe310..1189ae4b8ad091958341b332012009638847e72e 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/Shulker.java
++++ b/src/main/java/net/minecraft/world/entity/monster/Shulker.java
+@@ -454,12 +454,13 @@ public class Shulker extends AbstractGolem implements Enemy {
+     public boolean hurt(DamageSource source, float amount) {
+         Entity entity;
+ 
+-        if (this.isClosed()) {
+-            entity = source.getDirectEntity();
+-            if (entity instanceof AbstractArrow) {
+-                return false;
+-            }
+-        }
++		// Monumenta: allow closed Shulkers to be hurt by arrows
++//        if (this.isClosed()) {
++//            entity = source.getDirectEntity();
++//            if (entity instanceof AbstractArrow) {
++//                return false;
++//            }
++//        }
+ 
+         if (!super.hurt(source, amount)) {
+             return false;
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Zombie.java b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
 index cd88413f30632307faba63572915656b6a8469f7..d0db3dae0ffe1edd710d76cf28c9bedadfcb1b75 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Zombie.java
@@ -185,7 +210,7 @@ index cd88413f30632307faba63572915656b6a8469f7..d0db3dae0ffe1edd710d76cf28c9beda
                      this.inWaterTime = -1;
                  }
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
-index 0524161f7cb414d526e6118258bddd989be6cc9a..97723bd0168eb9592430d778b44899f87e15ffde 100644
+index 60b1e42f7c6c358ed316e014d026005a1ec5bd0a..c1d7adcba2bc5ced0e5cbd114ca75a1eaae08d5d 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/ProjectileUtil.java
 @@ -128,6 +128,7 @@ public final class ProjectileUtil {
