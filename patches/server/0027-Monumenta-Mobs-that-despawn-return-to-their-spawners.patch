@@ -25,7 +25,7 @@ index 13276161c5d2dffa50d84b74a1dfe77bf4eec671..c10670872db8a0f09083c80c17edbec5
  
      private void tellNeutralMobsThatIDied() {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index dfd1f37757af1bd808cc2e2d8bf97123adf638bb..e94f81034c19d2a798e1c8a3962e8c2662b9e446 100644
+index dfd1f37757af1bd808cc2e2d8bf97123adf638bb..12dd52bc26df7e4445eaa62a8a16c8aefae509f7 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
 @@ -150,6 +150,7 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
@@ -51,7 +51,7 @@ index dfd1f37757af1bd808cc2e2d8bf97123adf638bb..e94f81034c19d2a798e1c8a3962e8c26
  
 +    // Monumenta START
 +    public void despawn() {
-+        if (this instanceof LivingEntity && this.spawnerSpawnedBy != null && ((LivingEntity) this).getHealth() >= 1 && this.getY() > 0 && this.spawnerSpawnedBy.blockPos != null) {
++        if (this instanceof net.minecraft.world.entity.LivingEntity && this.spawnerSpawnedBy != null && ((net.minecraft.world.entity.LivingEntity) this).getHealth() >= 1 && this.getY() > 0 && this.spawnerSpawnedBy.blockPos != null) {
 +            // Get closest player to spawner
 +            Player player = this.level.getNearestPlayer(this.spawnerSpawnedBy.blockPos.getX(), this.spawnerSpawnedBy.blockPos.getY(), this.spawnerSpawnedBy.blockPos.getZ(), -1, false);
 +            if (player != null) {
