@@ -1,0 +1,36 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Thu, 27 Oct 2022 09:27:04 -0400
+Subject: [PATCH] Monumenta - Freeze end gateway beacon
+
+
+diff --git a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
+index 4e435a16a16c703a2978f4dc82606b8710742670..b6212d457cc04f196461df101e40c0f7f62dc6af 100644
+--- a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
++++ b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
+@@ -55,6 +55,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+ 
+     public TheEndGatewayBlockEntity(BlockPos pos, BlockState state) {
+         super(BlockEntityType.END_GATEWAY, pos, state);
++        this.age = SPAWN_TIME;
+     }
+ 
+     @Override
+@@ -87,7 +88,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+     }
+ 
+     public static void beamAnimationTick(Level world, BlockPos pos, BlockState state, TheEndGatewayBlockEntity blockEntity) {
+-        ++blockEntity.age;
++        //++blockEntity.age;
+         if (blockEntity.isCoolingDown()) {
+             --blockEntity.teleportCooldown;
+         }
+@@ -98,7 +99,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+         boolean flag = blockEntity.isSpawning();
+         boolean flag1 = blockEntity.isCoolingDown();
+ 
+-        ++blockEntity.age;
++        //++blockEntity.age;
+         if (flag1) {
+             --blockEntity.teleportCooldown;
+         } else {
