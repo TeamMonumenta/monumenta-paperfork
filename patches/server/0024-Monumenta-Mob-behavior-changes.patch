@@ -12,6 +12,7 @@ Subject: [PATCH] Monumenta - Mob behavior changes
 - Endermen holding items are no longer always persistent
 - Endermen can be hurt by projectiles if their teleportation is cancelled
 - Closed Shulkers can be hurt by arrows
+- Withers can be hurt by arrows even below half health
 
 diff --git a/src/main/java/net/minecraft/world/entity/animal/Animal.java b/src/main/java/net/minecraft/world/entity/animal/Animal.java
 index 3f57ad6cbf29ebe1ac3781368c4f57efc9640aa4..b7474d9d7ba6d451a4e3f4b220dfd5e39218c3fa 100644
@@ -27,10 +28,30 @@ index 3f57ad6cbf29ebe1ac3781368c4f57efc9640aa4..b7474d9d7ba6d451a4e3f4b220dfd5e3
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
-index 563a028018421cbafdeff398175a32d6830134af..268b2c52b8e7db6243a78f50b4b6ce1b45b18b78 100644
+index 563a028018421cbafdeff398175a32d6830134af..308204199f390e55b69625e108a01d0bef0348b6 100644
 --- a/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
 +++ b/src/main/java/net/minecraft/world/entity/boss/wither/WitherBoss.java
-@@ -532,16 +532,17 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
+@@ -505,12 +505,13 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
+             } else {
+                 Entity entity;
+ 
+-                if (this.isPowered()) {
+-                    entity = source.getDirectEntity();
+-                    if (entity instanceof AbstractArrow) {
+-                        return false;
+-                    }
+-                }
++				// Monumenta - no longer immune to projectiles below half health
++//                if (this.isPowered()) {
++//                    entity = source.getDirectEntity();
++//                    if (entity instanceof AbstractArrow) {
++//                        return false;
++//                    }
++//                }
+ 
+                 entity = source.getEntity();
+                 if (entity != null && !(entity instanceof Player) && entity instanceof LivingEntity && ((LivingEntity) entity).getMobType() == this.getMobType()) {
+@@ -532,16 +533,17 @@ public class WitherBoss extends Monster implements PowerableMob, RangedAttackMob
          }
      }
  
