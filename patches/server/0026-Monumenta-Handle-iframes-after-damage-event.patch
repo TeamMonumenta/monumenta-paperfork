@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Handle iframes after damage event
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 92bdbf241af5e617ad44395e07abce678fa8d951..218144d328c7f9cf93f3d906d9ee623bf5692d46 100644
+index 61109566c2147f07dac9a5956eda1b68381c42e9..552a1dead50592154693da39bc8a1500dfe7205b 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -1328,31 +1328,11 @@ public abstract class LivingEntity extends Entity {
+@@ -1367,31 +1367,11 @@ public abstract class LivingEntity extends Entity {
              }
  
              this.animationSpeed = 1.5F;
@@ -44,7 +44,7 @@ index 92bdbf241af5e617ad44395e07abce678fa8d951..218144d328c7f9cf93f3d906d9ee623b
              }
  
              // CraftBukkit - Moved into damageEntity0(DamageSource, float)
-@@ -2004,6 +1984,21 @@ public abstract class LivingEntity extends Entity {
+@@ -2089,6 +2069,21 @@ public abstract class LivingEntity extends Entity {
         if (!this.isInvulnerableTo(damagesource)) {
              final boolean human = this instanceof net.minecraft.world.entity.player.Player;
              float originalDamage = f;
@@ -66,7 +66,7 @@ index 92bdbf241af5e617ad44395e07abce678fa8d951..218144d328c7f9cf93f3d906d9ee623b
              Function<Double, Double> hardHat = new Function<Double, Double>() {
                  @Override
                  public Double apply(Double f) {
-@@ -2067,7 +2062,7 @@ public abstract class LivingEntity extends Entity {
+@@ -2152,7 +2147,7 @@ public abstract class LivingEntity extends Entity {
              };
              float absorptionModifier = absorption.apply((double) f).floatValue();
  
@@ -75,7 +75,7 @@ index 92bdbf241af5e617ad44395e07abce678fa8d951..218144d328c7f9cf93f3d906d9ee623b
              if (damagesource.getEntity() instanceof net.minecraft.world.entity.player.Player) {
                  // Paper start - PlayerAttackEntityCooldownResetEvent
                  if (damagesource.getEntity() instanceof ServerPlayer) {
-@@ -2084,6 +2079,20 @@ public abstract class LivingEntity extends Entity {
+@@ -2169,6 +2164,20 @@ public abstract class LivingEntity extends Entity {
                  return false;
              }
  
@@ -97,10 +97,10 @@ index 92bdbf241af5e617ad44395e07abce678fa8d951..218144d328c7f9cf93f3d906d9ee623b
  
              // Resistance
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 32855617a253ecedb238b03070e2efe3f7b8143e..0e597df8a635ffd999c068dac7046d54fb4ee4c0 100644
+index 217358c504d62757488b0eec3087ad09e2027770..114afd9f629b435db1536150ede1a789df0cf611 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -1161,11 +1161,13 @@ public class CraftEventFactory {
+@@ -1166,11 +1166,13 @@ public class CraftEventFactory {
  
      private static final Function<? super Double, Double> ZERO = Functions.constant(-0.0);
  
@@ -112,6 +112,6 @@ index 32855617a253ecedb238b03070e2efe3f7b8143e..0e597df8a635ffd999c068dac7046d54
          modifierFunctions.put(DamageModifier.BASE, ZERO);
 +        modifiers.put(DamageModifier.IFRAMES, iframesModifier);
 +        modifierFunctions.put(DamageModifier.IFRAMES, iframes);
-         if (source == DamageSource.FALLING_BLOCK || source == DamageSource.ANVIL) {
+         if ("fallingBlock".equals(source.msgId) || "anvil".equals(source.msgId)) {
              modifiers.put(DamageModifier.HARD_HAT, hardHatModifier);
              modifierFunctions.put(DamageModifier.HARD_HAT, hardHat);

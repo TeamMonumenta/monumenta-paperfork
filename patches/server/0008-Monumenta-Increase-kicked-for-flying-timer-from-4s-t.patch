@@ -6,24 +6,15 @@ Subject: [PATCH] Monumenta - Increase kicked-for-flying timer from 4s to 6s
 Signed-off-by: Byron Marohn <combustible@live.com>
 
 diff --git a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-index 9df5b678ce4343d0bb54133393f6bbe40fe5366b..53a9cd87a62c03183109d7528626b4468a669e6b 100644
+index 08cb3db28f13c352a162009deeb28ee637e98d2a..d1646c9ec4e950784605c91deb883dd3c2cf0833 100644
 --- a/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
 +++ b/src/main/java/net/minecraft/server/network/ServerGamePacketListenerImpl.java
-@@ -316,7 +316,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
+@@ -356,7 +356,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Tic
          ++this.tickCount;
          this.knownMovePacketCount = this.receivedMovePacketCount;
          if (this.clientIsFloating && !this.player.isSleeping() && !this.player.isPassenger()) {
 -            if (++this.aboveGroundTickCount > 80) {
 +            if (++this.aboveGroundTickCount > 120) {
                  ServerGamePacketListenerImpl.LOGGER.warn("{} was kicked for floating too long!", this.player.getName().getString());
-                 this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickPlayerMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_PLAYER); // Paper - use configurable kick message & kick event cause
+                 this.disconnect(io.papermc.paper.configuration.GlobalConfiguration.get().messages.kick.flyingPlayer, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_PLAYER); // Paper - use configurable kick message & kick event cause
                  return;
-@@ -335,7 +335,7 @@ public class ServerGamePacketListenerImpl implements ServerPlayerConnection, Ser
-             this.vehicleLastGoodY = this.lastVehicle.getY();
-             this.vehicleLastGoodZ = this.lastVehicle.getZ();
-             if (this.clientVehicleIsFloating && this.player.getRootVehicle().getControllingPassenger() == this.player) {
--                if (++this.aboveGroundVehicleTickCount > 80) {
-+                if (++this.aboveGroundVehicleTickCount > 120) {
-                     ServerGamePacketListenerImpl.LOGGER.warn("{} was kicked for floating a vehicle too long!", this.player.getName().getString());
-                     this.disconnect(com.destroystokyo.paper.PaperConfig.flyingKickVehicleMessage, org.bukkit.event.player.PlayerKickEvent.Cause.FLYING_VEHICLE); // Paper - use configurable kick message & kick event cause
-                     return;

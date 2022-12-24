@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Disable Bouncing Arrows
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java b/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
-index 53d0024daf6963ac4dab575666b0d6a74a39a958..fbc1b5cb7a7e5365e9897d5e9976bda3ffc5c702 100644
+index 9788e477ff1446ad2ea3669922cc7dfc09900ce8..582c1b7977d6f0b38d1d5fafd3983f81c0013368 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
 +++ b/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
-@@ -459,6 +459,7 @@ public abstract class AbstractArrow extends Projectile {
+@@ -451,6 +451,7 @@ public abstract class AbstractArrow extends Projectile {
              }
          } else {
              entity.setRemainingFireTicks(k);
@@ -16,7 +16,7 @@ index 53d0024daf6963ac4dab575666b0d6a74a39a958..fbc1b5cb7a7e5365e9897d5e9976bda3
              this.setDeltaMovement(this.getDeltaMovement().scale(-0.1D));
              this.setYRot(this.getYRot() + 180.0F);
              this.yRotO += 180.0F;
-@@ -469,6 +470,10 @@ public abstract class AbstractArrow extends Projectile {
+@@ -461,6 +462,10 @@ public abstract class AbstractArrow extends Projectile {
  
                  this.discard();
              }

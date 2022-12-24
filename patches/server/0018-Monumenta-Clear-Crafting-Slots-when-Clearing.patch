@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Clear Crafting Slots when Clearing
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/player/Inventory.java b/src/main/java/net/minecraft/world/entity/player/Inventory.java
-index b770e7840b00b46a127ae05cc872a21f7a2dffad..ed2228ac52aa462716e332261b02bcf83102623f 100644
+index 5bc033bf59d49eda1f8f2574165bbcbeab7faa0f..11a6ce4ca956a527db2bd794d12ab298be4b5c75 100644
 --- a/src/main/java/net/minecraft/world/entity/player/Inventory.java
 +++ b/src/main/java/net/minecraft/world/entity/player/Inventory.java
-@@ -21,6 +21,8 @@ import net.minecraft.world.Nameable;
+@@ -20,6 +20,8 @@ import net.minecraft.world.Nameable;
  import net.minecraft.world.damagesource.DamageSource;
  import net.minecraft.world.entity.Entity;
  import net.minecraft.world.entity.EquipmentSlot;
@@ -17,7 +17,7 @@ index b770e7840b00b46a127ae05cc872a21f7a2dffad..ed2228ac52aa462716e332261b02bcf8
  import net.minecraft.world.item.ArmorItem;
  import net.minecraft.world.item.Item;
  import net.minecraft.world.item.ItemStack;
-@@ -254,6 +256,34 @@ public class Inventory implements Container, Nameable {
+@@ -253,6 +255,34 @@ public class Inventory implements Container, Nameable {
              this.player.containerMenu.setCarried(ItemStack.EMPTY);
          }
  
@@ -53,7 +53,7 @@ index b770e7840b00b46a127ae05cc872a21f7a2dffad..ed2228ac52aa462716e332261b02bcf8
      }
  
 diff --git a/src/main/java/net/minecraft/world/inventory/InventoryMenu.java b/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
-index 111da6398bb561e58571e47743088ce80416234d..ab62bfde7bfe66fc1988c3930e75903e6e78e270 100644
+index 150701f965006f1c7dc9d801ca0ab0add927d143..1c68e1684ddb80b3dd8eb569f3f5622fd5dbafc2 100644
 --- a/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
 +++ b/src/main/java/net/minecraft/world/inventory/InventoryMenu.java
 @@ -38,7 +38,7 @@ public class InventoryMenu extends RecipeBookMenu<CraftingContainer> {

@@ -1,11 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Ong <ongjiaming2001@gmail.com>
 Date: Wed, 25 May 2022 12:01:25 +1000
-Subject: [PATCH] MONUMENTA - Improve Villager Trade Comparison
+Subject: [PATCH] Monumenta - Improve Villager Trade Comparison
 
 
 diff --git a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
-index c9cb0717c2793acd5b5870a6cc4d672d69a40026..1b5eadf2fb5c4266341e291f6b980dc90250fde6 100644
+index 8a9a701baabdaf066cd9b28c05430f673fcafb4e..4027fa557db8fcf8586eaf43516291055a8d6079 100644
 --- a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
 +++ b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
 @@ -220,17 +220,51 @@ public class MerchantOffer {

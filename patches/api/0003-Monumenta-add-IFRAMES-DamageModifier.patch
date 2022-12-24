@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - add IFRAMES DamageModifier
 
 
 diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
-index 07538e1b94921429ddb277c154e5d5c83d095b3e..10adcf169d57d57ca059c4f9c3ad11056bdc9b03 100644
+index 6241f31e7326954b2e704da46bf0115adbcf8671..96aef06a479cd39b6e55206043481d4c0184a6cf 100644
 --- a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
 +++ b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
-@@ -217,6 +217,11 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
+@@ -218,6 +218,11 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
           * raw {@link EntityDamageEvent#getDamage()}.
           */
          BASE,

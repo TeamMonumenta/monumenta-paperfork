@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Selectors require targets to be alive
 
 
 diff --git a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
-index 015d01242a9e8e7c6ef5b6bbf1b6d6ad0c8f36ca..8945a14b455f6c31a55d78e4951239b80e225f8e 100644
+index 4cc2ee22369aef22c9bf9d2b244c7278d6db39bb..92d1eccf0c07e7b4b6368a403543f07acabf14e0 100644
 --- a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
 +++ b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
-@@ -132,9 +132,7 @@ public class EntitySelectorParser {
+@@ -130,9 +130,7 @@ public class EntitySelectorParser {
          this.level = MinMaxBounds.Ints.ANY;
          this.rotX = WrappedMinMaxBounds.ANY;
          this.rotY = WrappedMinMaxBounds.ANY;
@@ -16,6 +16,6 @@ index 015d01242a9e8e7c6ef5b6bbf1b6d6ad0c8f36ca..8945a14b455f6c31a55d78e4951239b8
 -            return true;
 -        };
 +        this.predicate = Entity::isAlive;
-         this.order = EntitySelectorParser.ORDER_ARBITRARY;
+         this.order = EntitySelector.ORDER_ARBITRARY;
          this.suggestions = EntitySelectorParser.SUGGEST_NOTHING;
          this.reader = reader;

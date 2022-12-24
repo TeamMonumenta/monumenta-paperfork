@@ -55,7 +55,7 @@ index 065525e8ce46c12cdfa1d5d06fb96ea4654e95a3..bbb977fe0c92fc2bdc49d51ff696034b
  
      @Override
 diff --git a/src/main/java/net/minecraft/world/level/block/CoralBlock.java b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
-index 4634bec1b34ee2d28b4b732f7a4d6077d454c195..bbd4ac7482f2bca7caa93b2db25923bc2dc974ea 100644
+index 88faea00be60a519f56f975a5311df5e1eb3e6b8..861412932978c0ee584fccf48b8c1820702ce107 100644
 --- a/src/main/java/net/minecraft/world/level/block/CoralBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
 @@ -45,19 +45,7 @@ public class CoralBlock extends Block {
@@ -80,12 +80,12 @@ index 4634bec1b34ee2d28b4b732f7a4d6077d454c195..bbd4ac7482f2bca7caa93b2db25923bc
  
      @Nullable
 diff --git a/src/main/java/net/minecraft/world/level/block/IceBlock.java b/src/main/java/net/minecraft/world/level/block/IceBlock.java
-index 2676cddca511ea775766cec0001269407599df6e..5d71f45927186f5daa2f93a6b86ea2df5e6dc183 100644
+index 64206d94a5bf210116d208f9678618b905a61428..b3abb3bbf465edda7663a003b2cbfddc5569ea30 100644
 --- a/src/main/java/net/minecraft/world/level/block/IceBlock.java
 +++ b/src/main/java/net/minecraft/world/level/block/IceBlock.java
-@@ -26,16 +26,7 @@ public class IceBlock extends HalfTransparentBlock {
-     public void playerDestroy(Level world, Player player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack stack) {
-         super.playerDestroy(world, player, pos, state, blockEntity, stack);
+@@ -31,16 +31,7 @@ public class IceBlock extends HalfTransparentBlock {
+     public void afterDestroy(Level world, BlockPos pos, ItemStack stack) {
+         // Paper end
          if (EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, stack) == 0) {
 -            if (world.dimensionType().ultraWarm()) {
 -                world.removeBlock(pos, false);
@@ -101,7 +101,7 @@ index 2676cddca511ea775766cec0001269407599df6e..5d71f45927186f5daa2f93a6b86ea2df
          }
  
      }
-@@ -49,17 +40,7 @@ public class IceBlock extends HalfTransparentBlock {
+@@ -54,17 +45,7 @@ public class IceBlock extends HalfTransparentBlock {
      }
  
      protected void melt(BlockState state, Level world, BlockPos pos) {

@@ -6,10 +6,10 @@ Subject: [PATCH] Monumenta - Add events for loading and saving advancement
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerAdvancements.java b/src/main/java/net/minecraft/server/PlayerAdvancements.java
-index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b66d619a52 100644
+index a0c19503aabab5378d672a30163d35a5ba05b6c1..5adb1a2e63166d4802523bd926b5f865ddd7d39d 100644
 --- a/src/main/java/net/minecraft/server/PlayerAdvancements.java
 +++ b/src/main/java/net/minecraft/server/PlayerAdvancements.java
-@@ -56,7 +56,7 @@ public class PlayerAdvancements {
+@@ -53,7 +53,7 @@ public class PlayerAdvancements {
  
      private static final Logger LOGGER = LogUtils.getLogger();
      private static final int VISIBILITY_DEPTH = 2;
@@ -18,7 +18,7 @@ index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b6
      private static final TypeToken<Map<ResourceLocation, AdvancementProgress>> TYPE_TOKEN = new TypeToken<Map<ResourceLocation, AdvancementProgress>>() {
      };
      private final DataFixer dataFixer;
-@@ -156,9 +156,18 @@ public class PlayerAdvancements {
+@@ -153,9 +153,18 @@ public class PlayerAdvancements {
      }
  
      private void load(ServerAdvancementManager advancementLoader) {
@@ -39,7 +39,7 @@ index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b6
  
                  try {
                      jsonreader.setLenient(false);
-@@ -186,7 +195,7 @@ public class PlayerAdvancements {
+@@ -183,7 +192,7 @@ public class PlayerAdvancements {
                          if (advancement == null) {
                              // CraftBukkit start
                              if (entry.getKey().getNamespace().equals("minecraft")) {
@@ -48,7 +48,7 @@ index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b6
                              }
                              // CraftBukkit end
                          } else {
-@@ -205,9 +214,9 @@ public class PlayerAdvancements {
+@@ -202,9 +211,9 @@ public class PlayerAdvancements {
  
                  jsonreader.close();
              } catch (JsonParseException jsonparseexception) {
@@ -60,7 +60,7 @@ index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b6
              }
          }
  
-@@ -230,22 +239,28 @@ public class PlayerAdvancements {
+@@ -227,22 +236,28 @@ public class PlayerAdvancements {
              }
          }
  
@@ -95,7 +95,7 @@ index b16287a47870978706734b928b87f2357e91e3a1..e2977733519eceb6d24aa6f76ff472b6
                  } catch (Throwable throwable) {
                      try {
                          outputstreamwriter.close();
-@@ -269,7 +284,7 @@ public class PlayerAdvancements {
+@@ -266,7 +281,7 @@ public class PlayerAdvancements {
  
              fileoutputstream.close();
          } catch (IOException ioexception) {

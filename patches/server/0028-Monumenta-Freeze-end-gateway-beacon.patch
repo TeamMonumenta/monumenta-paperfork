@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Freeze end gateway beacon
 
 
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
-index 4e435a16a16c703a2978f4dc82606b8710742670..b6212d457cc04f196461df101e40c0f7f62dc6af 100644
+index f80545f80948db27d1fbde77d0505c916eb504ed..98f336e738c21ac97667d7446b8359e647169902 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
-@@ -55,6 +55,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+@@ -56,6 +56,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
  
      public TheEndGatewayBlockEntity(BlockPos pos, BlockState state) {
          super(BlockEntityType.END_GATEWAY, pos, state);
@@ -16,7 +16,7 @@ index 4e435a16a16c703a2978f4dc82606b8710742670..b6212d457cc04f196461df101e40c0f7
      }
  
      @Override
-@@ -87,7 +88,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+@@ -88,7 +89,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
      }
  
      public static void beamAnimationTick(Level world, BlockPos pos, BlockState state, TheEndGatewayBlockEntity blockEntity) {
@@ -25,7 +25,7 @@ index 4e435a16a16c703a2978f4dc82606b8710742670..b6212d457cc04f196461df101e40c0f7
          if (blockEntity.isCoolingDown()) {
              --blockEntity.teleportCooldown;
          }
-@@ -98,7 +99,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
+@@ -99,7 +100,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {
          boolean flag = blockEntity.isSpawning();
          boolean flag1 = blockEntity.isCoolingDown();
  
