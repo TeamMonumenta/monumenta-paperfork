@@ -212,10 +212,20 @@ index 4992f088cc71b1b30df5f5b0d205f4d174bfe310..1189ae4b8ad091958341b33201200963
          if (!super.hurt(source, amount)) {
              return false;
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Slime.java b/src/main/java/net/minecraft/world/entity/monster/Slime.java
-index 2e819d32915941bd77034ce599eb787610a6d666..375b348ee9c7a7476c0660bbaa027ae55dde23bb 100644
+index 2e819d32915941bd77034ce599eb787610a6d666..12aa25c44d9f3a1480d771734116d8d0fe7c8c90 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Slime.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/Slime.java
-@@ -554,7 +554,8 @@ public class Slime extends Mob implements Enemy {
+@@ -491,7 +491,8 @@ public class Slime extends Mob implements Enemy {
+                 this.slime.getJumpControl().jump();
+             }
+ 
+-            ((Slime.SlimeMoveControl) this.slime.getMoveControl()).setWantedMovement(1.2D);
++            if (this.slime.getMoveControl() instanceof Slime.SlimeMoveControl slimeMoveControl) // Monumenta - check type before blindly casting in case the slime is a passenger
++                slimeMoveControl.setWantedMovement(1.2D);
+         }
+     }
+ 
+@@ -554,7 +555,8 @@ public class Slime extends Mob implements Enemy {
                  this.slime.lookAt(entityliving, 10.0F, 10.0F);
              }
  
@@ -225,6 +235,26 @@ index 2e819d32915941bd77034ce599eb787610a6d666..375b348ee9c7a7476c0660bbaa027ae5
          }
  
          // Paper start - clear timer and target when goal resets
+@@ -593,7 +595,8 @@ public class Slime extends Mob implements Enemy {
+                 // Paper end
+             }
+ 
+-            ((Slime.SlimeMoveControl) this.slime.getMoveControl()).setDirection(this.chosenDegrees, false);
++			if (this.slime.getMoveControl() instanceof Slime.SlimeMoveControl slimeMoveControl) // Monumenta - check type before blindly casting in case the slime is a passenger
++	            slimeMoveControl.setDirection(this.chosenDegrees, false);
+         }
+     }
+ 
+@@ -613,7 +616,8 @@ public class Slime extends Mob implements Enemy {
+ 
+         @Override
+         public void tick() {
+-            ((Slime.SlimeMoveControl) this.slime.getMoveControl()).setWantedMovement(1.0D);
++            if (this.slime.getMoveControl() instanceof Slime.SlimeMoveControl slimeMoveControl) // Monumenta - check type before blindly casting in case the slime is a passenger
++                slimeMoveControl.setWantedMovement(1.0D);
+         }
+     }
+ 
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Zombie.java b/src/main/java/net/minecraft/world/entity/monster/Zombie.java
 index cd88413f30632307faba63572915656b6a8469f7..d0db3dae0ffe1edd710d76cf28c9bedadfcb1b75 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Zombie.java
