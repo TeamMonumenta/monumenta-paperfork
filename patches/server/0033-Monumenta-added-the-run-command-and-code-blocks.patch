@@ -12,30 +12,30 @@ index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..baf69fc0585ff233b4aeba5b764608aa
          for(int i = 0; i < lines.size(); ++i) {
              int j = i + 1;
              String string = lines.get(i).trim();
-+			// Monumenta start: code blocks
-+			if (string.startsWith("run ") && string.endsWith("{")) {
-+				boolean first = true;
-+				int nesting = 1;
-+		        for (i++; i < lines.size(); i++) {
-+					String blockLine = lines.get(i);
-+					String blockLineTrimmed = blockLine.trim();
-+					string += (first ? " " : "\n") + blockLine;
-+					first = false;
-+					if (blockLineTrimmed.equals("}")) {
-+						nesting--;
-+						if (nesting == 0) {
-+							break;
-+						}
-+					} else if (blockLineTrimmed.startsWith("run ") && blockLineTrimmed.endsWith("{")) {
-+						nesting++;
-+					}
-+		        }
-+				if (nesting != 0) {
++            // Monumenta start: code blocks
++            if (string.startsWith("run ") && string.endsWith("{")) {
++                boolean first = true;
++                int nesting = 1;
++                for (i++; i < lines.size(); i++) {
++                    String blockLine = lines.get(i);
++                    String blockLineTrimmed = blockLine.trim();
++                    string += (first ? " " : "\n") + blockLine;
++                    first = false;
++                    if (blockLineTrimmed.equals("}")) {
++                        nesting--;
++                        if (nesting == 0) {
++                            break;
++                        }
++                    } else if (blockLineTrimmed.startsWith("run ") && blockLineTrimmed.endsWith("{")) {
++                        nesting++;
++                    }
++                }
++                if (nesting != 0) {
 +                    throw new IllegalArgumentException("Unterminated block starting at line " + j);
-+				}
++                }
 +                j = i + 1;
-+			}
-+			// Monumenta end
++            }
++            // Monumenta end
              StringReader stringReader = new StringReader(string);
              if (stringReader.canRead() && stringReader.peek() != '#') {
                  if (stringReader.peek() == '/') {
@@ -49,14 +49,14 @@ index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..baf69fc0585ff233b4aeba5b764608aa
              }
          }
 diff --git a/src/main/java/net/minecraft/commands/Commands.java b/src/main/java/net/minecraft/commands/Commands.java
-index b66afde6851ceaeccb84aea00cdc333dfbf3d4b0..83f6c485475af8fa03aa82ebaa20ca9b9d18be6f 100644
+index b66afde6851ceaeccb84aea00cdc333dfbf3d4b0..534fb7c73311b5a0df7be2c93fa78e3cfd070bdc 100644
 --- a/src/main/java/net/minecraft/commands/Commands.java
 +++ b/src/main/java/net/minecraft/commands/Commands.java
 @@ -213,6 +213,9 @@ public class Commands {
              PublishCommand.register(this.dispatcher);
          }
  
-+		// Monumenta
++        // Monumenta
 +        net.minecraft.server.commands.RunCommand.register(this.dispatcher);
 +
          // Paper start
@@ -64,10 +64,10 @@ index b66afde6851ceaeccb84aea00cdc333dfbf3d4b0..83f6c485475af8fa03aa82ebaa20ca9b
              if (node.getRequirement() == com.mojang.brigadier.builder.ArgumentBuilder.<CommandSourceStack>defaultRequirement()) {
 diff --git a/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java b/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..8e6b5f44b486105ba4e7f390e78f476896eb1a28
+index 0000000000000000000000000000000000000000..1d47ac8bfb3743b0f4d17d9b1b314c56945e0776
 --- /dev/null
 +++ b/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,49 @@
 +package net.minecraft.commands.arguments;
 +
 +import com.mojang.brigadier.CommandDispatcher;
@@ -89,43 +89,36 @@ index 0000000000000000000000000000000000000000..8e6b5f44b486105ba4e7f390e78f4768
 +// Monumenta: added this argument
 +public class CodeBlockArgument implements ArgumentType<CommandFunction> {
 +
-+	@Override
-+	public CommandFunction parse(StringReader reader) throws CommandSyntaxException {
-+		CommandDispatcher<CommandSourceStack> dispatcher = MinecraftServer.getServer().getCommands().getDispatcher();
-+		// context copied from ServerFunctionLibrary
-+		CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, MinecraftServer.getServer().getFunctionCompilationLevel(), "", TextComponent.EMPTY, null, null);
++    @Override
++    public CommandFunction parse(StringReader reader) throws CommandSyntaxException {
++        CommandDispatcher<CommandSourceStack> dispatcher = MinecraftServer.getServer().getCommands().getDispatcher();
++        // context copied from ServerFunctionLibrary
++        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, MinecraftServer.getServer().getFunctionCompilationLevel(), "", TextComponent.EMPTY, null, null);
 +
-+		StringBuilder linesBuilder = new StringBuilder();
-+		while (reader.canRead()) {
-+			linesBuilder.append(reader.read());
-+		}
-+		String lines = linesBuilder.toString().replaceFirst("}\\s*$", "");
++        StringBuilder linesBuilder = new StringBuilder();
++        while (reader.canRead()) {
++            linesBuilder.append(reader.read());
++        }
++        String lines = linesBuilder.toString().replaceFirst("}\\s*$", "");
 +
-+		try {
-+			CommandFunction f = CommandFunction.fromLines(new ResourceLocation("minecraft", "synthetic-run-function"), dispatcher, commandSourceStack, Arrays.asList(lines.split("\n")));
-+			System.out.println(f);
-+			return f;
-+		} catch (IllegalArgumentException e) {
-+			System.out.println(e);
-+			throw new CommandSyntaxException(new SimpleCommandExceptionType(new TextComponent("Error in code block")), new TextComponent("Error in code block: " + e.getMessage()));
-+		} catch (Exception e) {
-+			System.out.println(e);
-+			throw e;
-+		}
++        try {
++            return CommandFunction.fromLines(new ResourceLocation("minecraft", "synthetic-run-function"), dispatcher, commandSourceStack, Arrays.asList(lines.split("\n")));
++        } catch (IllegalArgumentException e) {
++            throw new CommandSyntaxException(new SimpleCommandExceptionType(new TextComponent("Error in code block")), new TextComponent("Error in code block: " + e.getMessage()));
++        }
++    }
 +
-+	}
++    public static CodeBlockArgument codeBlock() {
++        return new CodeBlockArgument();
++    }
 +
-+	public static CodeBlockArgument codeBlock() {
-+		return new CodeBlockArgument();
-+	}
-+
-+	public static CommandFunction getCodeBlock(CommandContext<CommandSourceStack> context, String name) {
-+		return context.getArgument(name, CommandFunction.class);
-+	}
++    public static CommandFunction getCodeBlock(CommandContext<CommandSourceStack> context, String name) {
++        return context.getArgument(name, CommandFunction.class);
++    }
 +
 +}
 diff --git a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
-index c2302b2a9007da01a821c26bc29b7c6db5662247..cbc2d1f792ea36666384688a8ef99e2b5f274728 100644
+index c2302b2a9007da01a821c26bc29b7c6db5662247..3486a5aff59811ac6874b8961bf0f61ce828961c 100644
 --- a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 +++ b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 @@ -130,7 +130,7 @@ public class ArgumentTypes {
@@ -137,20 +130,22 @@ index c2302b2a9007da01a821c26bc29b7c6db5662247..cbc2d1f792ea36666384688a8ef99e2b
      }
  
      @Nullable
-@@ -144,9 +144,10 @@ public class ArgumentTypes {
+@@ -144,8 +144,13 @@ public class ArgumentTypes {
      }
  
      public static <T extends ArgumentType<?>> void serialize(FriendlyByteBuf buf, T type) {
 -        ArgumentTypes.Entry<T> entry = get(type);
 +        ArgumentTypes.Entry<T> entry = (Entry<T>) get(type);
          if (entry == null) {
--            LOGGER.error("Could not serialize {} ({}) - will not be sent to client!", type, type.getClass());
-+            // Monumenta: custom argument types cannot be serialized - don't log an error for them
-+            // LOGGER.error("Could not serialize {} ({}) - will not be sent to client!", type, type.getClass());
++            // Monumenta - serialize code block as a greedy string
++            if (type instanceof net.minecraft.commands.arguments.CodeBlockArgument) {
++                serialize(buf, com.mojang.brigadier.arguments.StringArgumentType.greedyString());
++                return;
++            }
+             LOGGER.error("Could not serialize {} ({}) - will not be sent to client!", type, type.getClass());
              buf.writeResourceLocation(new ResourceLocation(""));
          } else {
-             buf.writeResourceLocation(entry.name);
-@@ -167,7 +168,7 @@ public class ArgumentTypes {
+@@ -167,7 +172,7 @@ public class ArgumentTypes {
      }
  
      private static <T extends ArgumentType<?>> void serializeToJson(JsonObject json, T type) {
@@ -174,7 +169,7 @@ index 818596eda9488b98f7b80c6e9d81ccbf6512f488..643fe90b40463a75a1290a1f3649e40f
          })))).then(Commands.literal("score").then(Commands.argument("target", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(Commands.argument("targetObjective", ObjectiveArgument.objective()).then(Commands.literal("=").then(Commands.argument("source", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(addConditional(root, Commands.argument("sourceObjective", ObjectiveArgument.objective()), positive, (context) -> {
 diff --git a/src/main/java/net/minecraft/server/commands/RunCommand.java b/src/main/java/net/minecraft/server/commands/RunCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..51c821ad9fb0bc61ab2cb997bb0d7a649a227f52
+index 0000000000000000000000000000000000000000..2e902047ce28cd513abb494cf25fc800e72c7bdb
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/commands/RunCommand.java
 @@ -0,0 +1,95 @@
@@ -264,12 +259,12 @@ index 0000000000000000000000000000000000000000..51c821ad9fb0bc61ab2cb997bb0d7a64
 +        })))
 +
 +        // custom code starts here
-+		.then(Commands.literal("{").then(Commands.argument("code block", CodeBlockArgument.codeBlock())
-+		.executes((context) -> {
-+			CommandFunction codeBlock = CodeBlockArgument.getCodeBlock(context, "code block");
-+			context.getSource().getServer().getFunctions().execute(codeBlock, context.getSource());
-+			return 0;
-+		}))));
++        .then(Commands.literal("{").then(Commands.argument("code block", CodeBlockArgument.codeBlock())
++        .executes((context) -> {
++            CommandFunction codeBlock = CodeBlockArgument.getCodeBlock(context, "code block");
++            context.getSource().getServer().getFunctions().execute(codeBlock, context.getSource());
++            return 0;
++        }))));
 +    }
 +
 +}
