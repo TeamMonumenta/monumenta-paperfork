@@ -5,7 +5,7 @@ Subject: [PATCH] Monumenta: added the 'run' command and code blocks
 
 
 diff --git a/src/main/java/net/minecraft/commands/CommandFunction.java b/src/main/java/net/minecraft/commands/CommandFunction.java
-index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..baf69fc0585ff233b4aeba5b764608aa283d90c7 100644
+index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..d11e04e01c7a75de74be4cef2d8b86e88c201bf5 100644
 --- a/src/main/java/net/minecraft/commands/CommandFunction.java
 +++ b/src/main/java/net/minecraft/commands/CommandFunction.java
 @@ -45,6 +45,30 @@ public class CommandFunction {
@@ -118,7 +118,7 @@ index 0000000000000000000000000000000000000000..1d47ac8bfb3743b0f4d17d9b1b314c56
 +
 +}
 diff --git a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
-index c2302b2a9007da01a821c26bc29b7c6db5662247..3486a5aff59811ac6874b8961bf0f61ce828961c 100644
+index c2302b2a9007da01a821c26bc29b7c6db5662247..5cc9010fbb9a30ead8cb363ca2c8c9d993d1f83b 100644
 --- a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 +++ b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 @@ -130,7 +130,7 @@ public class ArgumentTypes {
@@ -145,15 +145,21 @@ index c2302b2a9007da01a821c26bc29b7c6db5662247..3486a5aff59811ac6874b8961bf0f61c
              LOGGER.error("Could not serialize {} ({}) - will not be sent to client!", type, type.getClass());
              buf.writeResourceLocation(new ResourceLocation(""));
          } else {
-@@ -167,7 +172,7 @@ public class ArgumentTypes {
+@@ -167,8 +172,13 @@ public class ArgumentTypes {
      }
  
      private static <T extends ArgumentType<?>> void serializeToJson(JsonObject json, T type) {
 -        ArgumentTypes.Entry<T> entry = get(type);
 +        ArgumentTypes.Entry<T> entry = (Entry<T>) get(type);
          if (entry == null) {
++            // Monumenta - serialize code block as a greedy string
++            if (type instanceof net.minecraft.commands.arguments.CodeBlockArgument) {
++                serializeToJson(json, com.mojang.brigadier.arguments.StringArgumentType.greedyString());
++                return;
++            }
              LOGGER.error("Could not serialize argument {} ({})!", type, type.getClass());
              json.addProperty("type", "unknown");
+         } else {
 diff --git a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
 index 818596eda9488b98f7b80c6e9d81ccbf6512f488..643fe90b40463a75a1290a1f3649e40fe5f6ecd0 100644
 --- a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
