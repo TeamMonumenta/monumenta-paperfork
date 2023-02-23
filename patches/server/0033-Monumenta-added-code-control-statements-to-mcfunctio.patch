@@ -1,0 +1,671 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Peter=20G=C3=BCttinger?= <njol@gmx.ch>
+Date: Sat, 18 Feb 2023 10:18:50 +0100
+Subject: [PATCH] Monumenta: added code control statements to mcfunctions
+
+
+diff --git a/src/main/java/com/mojang/brigadier/CommandDispatcher.java b/src/main/java/com/mojang/brigadier/CommandDispatcher.java
+index b64c98c173e25055f4ff9d7124d0a3cb7ff6ab1d..9644b86c93715e70fe1da5a52733639ae25d86a1 100644
+--- a/src/main/java/com/mojang/brigadier/CommandDispatcher.java
++++ b/src/main/java/com/mojang/brigadier/CommandDispatcher.java
+@@ -55,6 +55,8 @@ public class CommandDispatcher<S> {
+     private static final String USAGE_REQUIRED_CLOSE = ")";
+     private static final String USAGE_OR = "|";
+ 
++    public static ParseResults<?> CURRENT_COMMAND; // Monumenta
++
+     private final RootCommandNode<S> root;
+ 
+     private final Predicate<CommandNode<S>> hasCommand = new Predicate<CommandNode<S>>() {
+@@ -261,6 +263,7 @@ public class CommandDispatcher<S> {
+                 } else if (context.getCommand() != null) {
+                     foundCommand = true;
+                     try {
++                        CURRENT_COMMAND = parse; // Monumenta
+                         final int value = context.getCommand().run(context);
+                         result += value;
+                         this.consumer.onCommandComplete(context, true, value);
+@@ -270,6 +273,8 @@ public class CommandDispatcher<S> {
+                         if (!forked) {
+                             throw ex;
+                         }
++                    } finally {
++                        CURRENT_COMMAND = null; // Monumenta
+                     }
+                 }
+             }
+diff --git a/src/main/java/net/minecraft/commands/CommandFunction.java b/src/main/java/net/minecraft/commands/CommandFunction.java
+index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..17885d667d9ca60aa2efb00d064900aa966b4215 100644
+--- a/src/main/java/net/minecraft/commands/CommandFunction.java
++++ b/src/main/java/net/minecraft/commands/CommandFunction.java
+@@ -16,15 +16,15 @@ import net.minecraft.server.ServerFunctionManager;
+ public class CommandFunction {
+     private final CommandFunction.Entry[] entries;
+     final ResourceLocation id;
+-    // Paper start
+-    public co.aikar.timings.Timing timing;
+-    public co.aikar.timings.Timing getTiming() {
+-        if (timing == null) {
+-            timing = co.aikar.timings.MinecraftTimings.getCommandFunctionTiming(this);
+-        }
+-        return timing;
+-    }
+-    // Paper end
++    // Paper start
++    public co.aikar.timings.Timing timing;
++    public co.aikar.timings.Timing getTiming() {
++        if (timing == null) {
++            timing = co.aikar.timings.MinecraftTimings.getCommandFunctionTiming(this);
++        }
++        return timing;
++    }
++    // Paper end
+ 
+     public CommandFunction(ResourceLocation id, CommandFunction.Entry[] elements) {
+         this.id = id;
+@@ -45,6 +45,30 @@ public class CommandFunction {
+         for(int i = 0; i < lines.size(); ++i) {
+             int j = i + 1;
+             String string = lines.get(i).trim();
++            // Monumenta start: code blocks
++            if ((string.startsWith("run ") || string.startsWith("loop ")) && string.endsWith("{")) {
++                boolean first = true;
++                int nesting = 1;
++                for (i++; i < lines.size(); i++) {
++                    String blockLine = lines.get(i);
++                    String blockLineTrimmed = blockLine.trim();
++                    string += (first ? " " : "\n") + blockLine;
++                    first = false;
++                    if (blockLineTrimmed.equals("}")) {
++                        nesting--;
++                        if (nesting == 0) {
++                            break;
++                        }
++                    } else if ((blockLineTrimmed.startsWith("run ") || blockLineTrimmed.startsWith("loop ")) && blockLineTrimmed.endsWith("{")) {
++                        nesting++;
++                    }
++                }
++                if (nesting != 0) {
++                    throw new IllegalArgumentException("Unterminated block starting at line " + j);
++                }
++                j = i + 1;
++            }
++            // Monumenta end
+             StringReader stringReader = new StringReader(string);
+             if (stringReader.canRead() && stringReader.peek() != '#') {
+                 if (stringReader.peek() == '/') {
+@@ -65,7 +89,7 @@ public class CommandFunction {
+ 
+                     list.add(new CommandFunction.CommandEntry(parseResults));
+                 } catch (CommandSyntaxException var10) {
+-                    throw new IllegalArgumentException("Whilst parsing command on line " + j + ": " + var10.getMessage());
++                    throw new IllegalArgumentException("Whilst parsing command on line " + j + ": " + var10.getMessage() + " (full line: '" + string + "')");
+                 }
+             }
+         }
+@@ -167,6 +191,8 @@ public class CommandFunction {
+                     entries.addFirst(new ServerFunctionManager.QueuedCommand(source, depth + 1, entrys[m]));
+                 }
+ 
++                ServerFunctionManager.CURRENT_FUNCTION_STACK.push(function.getId()); // Monumenta
++
+             }, () -> {
+                 if (tracer != null) {
+                     tracer.onCall(depth, this.function.getId(), -1);
+diff --git a/src/main/java/net/minecraft/commands/Commands.java b/src/main/java/net/minecraft/commands/Commands.java
+index b66afde6851ceaeccb84aea00cdc333dfbf3d4b0..c05e9c5222944784d6f1e91ddcfceeead6503d8f 100644
+--- a/src/main/java/net/minecraft/commands/Commands.java
++++ b/src/main/java/net/minecraft/commands/Commands.java
+@@ -213,6 +213,14 @@ public class Commands {
+             PublishCommand.register(this.dispatcher);
+         }
+ 
++        // Monumenta start
++        net.minecraft.server.commands.RunCommand.register(this.dispatcher);
++        net.minecraft.server.commands.LoopCommand.register(this.dispatcher);
++        net.minecraft.server.commands.BreakCommand.register(this.dispatcher);
++        net.minecraft.server.commands.ContinueCommand.register(this.dispatcher);
++        net.minecraft.server.commands.ReturnCommand.register(this.dispatcher);
++        // Monumenta end
++
+         // Paper start
+         for (final CommandNode<CommandSourceStack> node : this.dispatcher.getRoot().getChildren()) {
+             if (node.getRequirement() == com.mojang.brigadier.builder.ArgumentBuilder.<CommandSourceStack>defaultRequirement()) {
+diff --git a/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java b/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e67f07caed77ad13058a363ed8f9953004bd2ea
+--- /dev/null
++++ b/src/main/java/net/minecraft/commands/arguments/CodeBlockArgument.java
+@@ -0,0 +1,91 @@
++package net.minecraft.commands.arguments;
++
++import com.mojang.brigadier.CommandDispatcher;
++import com.mojang.brigadier.StringReader;
++import com.mojang.brigadier.arguments.ArgumentType;
++import com.mojang.brigadier.context.CommandContext;
++import com.mojang.brigadier.exceptions.CommandSyntaxException;
++import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.Set;
++import net.minecraft.commands.CommandFunction;
++import net.minecraft.commands.CommandSource;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.network.chat.TextComponent;
++import net.minecraft.resources.ResourceLocation;
++import net.minecraft.server.MinecraftServer;
++import net.minecraft.server.ServerFunctionManager;
++import net.minecraft.server.commands.LoopCommand;
++import net.minecraft.world.phys.Vec2;
++import net.minecraft.world.phys.Vec3;
++
++// Monumenta: added this argument
++public class CodeBlockArgument implements ArgumentType<CommandFunction> {
++
++    private static final Set<ResourceLocation> ALL_CODE_BLOCKS = new HashSet<>();
++    private final ResourceLocation syntheticFunctionName;
++
++    private CodeBlockArgument(ResourceLocation syntheticFunctionName) {
++        this.syntheticFunctionName = syntheticFunctionName;
++    }
++
++    @Override
++    public CommandFunction parse(StringReader reader) throws CommandSyntaxException {
++        CommandDispatcher<CommandSourceStack> dispatcher = MinecraftServer.getServer().getCommands().getDispatcher();
++        // context copied from ServerFunctionLibrary
++        CommandSourceStack commandSourceStack = new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, MinecraftServer.getServer().getFunctionCompilationLevel(), "", TextComponent.EMPTY, null, null);
++
++        StringBuilder linesBuilder = new StringBuilder();
++        while (reader.canRead()) {
++            linesBuilder.append(reader.read());
++        }
++        String lines = linesBuilder.toString().replaceFirst("}\\s*$", "");
++
++        try {
++            return CommandFunction.fromLines(syntheticFunctionName, dispatcher, commandSourceStack, Arrays.asList(lines.split("\n")));
++        } catch (IllegalArgumentException e) {
++            throw new CommandSyntaxException(new SimpleCommandExceptionType(new TextComponent("Error in code block")), new TextComponent("Error in code block: " + e.getMessage()));
++        }
++    }
++
++    public static CodeBlockArgument codeBlock(ResourceLocation syntheticFunctionName) {
++        ALL_CODE_BLOCKS.add(syntheticFunctionName);
++        return new CodeBlockArgument(syntheticFunctionName);
++    }
++
++    public static CommandFunction getCodeBlock(CommandContext<CommandSourceStack> context, String name) {
++        return context.getArgument(name, CommandFunction.class);
++    }
++
++    public static int countLoopsDepth(int loops) {
++        int result = -1;
++        for (ResourceLocation function : ServerFunctionManager.CURRENT_FUNCTION_STACK) {
++            if (ALL_CODE_BLOCKS.contains(function)) {
++                result++;
++                if (function.equals(LoopCommand.SYNTHETIC_FUNCTION_NAME)) {
++                    loops--;
++                    if (loops <= 0) {
++                        return result;
++                    }
++                }
++            } else {
++                return result;
++            }
++        }
++        return result;
++    }
++
++    public static int countBlocks() {
++        int result = 0;
++        for (ResourceLocation function : ServerFunctionManager.CURRENT_FUNCTION_STACK) {
++            if (ALL_CODE_BLOCKS.contains(function)) {
++                result++;
++            } else {
++                return result;
++            }
++        }
++        return result;
++    }
++
++}
+diff --git a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
+index c2302b2a9007da01a821c26bc29b7c6db5662247..5cc9010fbb9a30ead8cb363ca2c8c9d993d1f83b 100644
+--- a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
++++ b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
+@@ -130,7 +130,7 @@ public class ArgumentTypes {
+     }
+ 
+     private static <T extends ArgumentType<?>> Class<T> fixClassType(Class<? super T> clazz) {
+-        return clazz;
++        return (Class<T>) clazz;
+     }
+ 
+     @Nullable
+@@ -144,8 +144,13 @@ public class ArgumentTypes {
+     }
+ 
+     public static <T extends ArgumentType<?>> void serialize(FriendlyByteBuf buf, T type) {
+-        ArgumentTypes.Entry<T> entry = get(type);
++        ArgumentTypes.Entry<T> entry = (Entry<T>) get(type);
+         if (entry == null) {
++            // Monumenta - serialize code block as a greedy string
++            if (type instanceof net.minecraft.commands.arguments.CodeBlockArgument) {
++                serialize(buf, com.mojang.brigadier.arguments.StringArgumentType.greedyString());
++                return;
++            }
+             LOGGER.error("Could not serialize {} ({}) - will not be sent to client!", type, type.getClass());
+             buf.writeResourceLocation(new ResourceLocation(""));
+         } else {
+@@ -167,8 +172,13 @@ public class ArgumentTypes {
+     }
+ 
+     private static <T extends ArgumentType<?>> void serializeToJson(JsonObject json, T type) {
+-        ArgumentTypes.Entry<T> entry = get(type);
++        ArgumentTypes.Entry<T> entry = (Entry<T>) get(type);
+         if (entry == null) {
++            // Monumenta - serialize code block as a greedy string
++            if (type instanceof net.minecraft.commands.arguments.CodeBlockArgument) {
++                serializeToJson(json, com.mojang.brigadier.arguments.StringArgumentType.greedyString());
++                return;
++            }
+             LOGGER.error("Could not serialize argument {} ({})!", type, type.getClass());
+             json.addProperty("type", "unknown");
+         } else {
+diff --git a/src/main/java/net/minecraft/server/ServerFunctionManager.java b/src/main/java/net/minecraft/server/ServerFunctionManager.java
+index 48205eb72c63fc22042ba4eef8bd1cf85ef61f8a..19dcbae0e43d88765ce8a26c009464169bbce0da 100644
+--- a/src/main/java/net/minecraft/server/ServerFunctionManager.java
++++ b/src/main/java/net/minecraft/server/ServerFunctionManager.java
+@@ -26,6 +26,13 @@ public class ServerFunctionManager {
+     private static final Component NO_RECURSIVE_TRACES = new TranslatableComponent("commands.debug.function.noRecursion");
+     private static final ResourceLocation TICK_FUNCTION_TAG = new ResourceLocation("tick");
+     private static final ResourceLocation LOAD_FUNCTION_TAG = new ResourceLocation("load");
++
++    // Monumenta start
++    public static int SKIP_DEPTH = -1;
++    public static boolean SKIP_NEXT_LOOP = false;
++    public static final Deque<ResourceLocation> CURRENT_FUNCTION_STACK = new java.util.LinkedList<>();
++    // Monumenta end
++
+     final MinecraftServer server;
+     @Nullable
+     private ServerFunctionManager.ExecutionContext context;
+@@ -101,6 +108,18 @@ public class ServerFunctionManager {
+         }
+     }
+ 
++    // Monumenta start
++    // Executes a command in the currently running function, or starts a new synthetic function to run the command.
++    public void executeCommandInFunction(com.mojang.brigadier.ParseResults<CommandSourceStack> command, CommandSourceStack source, int depthDelta) {
++        if (this.context != null) {
++            context.nestedCalls.add(new QueuedCommand(source, context.depth + depthDelta, new CommandFunction.CommandEntry(command)));
++        } else {
++            execute(new CommandFunction(new ResourceLocation("minecraft", "synthetic-function"),
++                    new CommandFunction.Entry[] { new CommandFunction.CommandEntry(command) }), source);
++        }
++    }
++    // Monumenta end
++
+     public void replaceLibrary(ServerFunctionLibrary loader) {
+         this.library = loader;
+         this.postReload(loader);
+@@ -168,6 +187,11 @@ public class ServerFunctionManager {
+             int j = 0;
+             CommandFunction.Entry[] acustomfunction_c = function.getEntries();
+ 
++            // Monumenta start
++            CURRENT_FUNCTION_STACK.clear();
++            CURRENT_FUNCTION_STACK.push(function.getId());
++            // Monumenta end
++
+             for (int k = acustomfunction_c.length - 1; k >= 0; --k) {
+                 this.commandQueue.push(new ServerFunctionManager.QueuedCommand(source, 0, acustomfunction_c[k]));
+             }
+@@ -184,6 +208,7 @@ public class ServerFunctionManager {
+                     Objects.requireNonNull(customfunctiondata_b);
+                     gameprofilerfiller.push(customfunctiondata_b::toString);
+                     this.depth = customfunctiondata_b.depth;
++                    while (CURRENT_FUNCTION_STACK.size() > depth + 1) CURRENT_FUNCTION_STACK.removeFirst(); // Monumenta
+                     customfunctiondata_b.execute(ServerFunctionManager.this, this.commandQueue, i, this.tracer);
+                     if (!this.nestedCalls.isEmpty()) {
+                         List list = Lists.reverse(this.nestedCalls);
+@@ -193,6 +218,16 @@ public class ServerFunctionManager {
+                         list.forEach(deque::addFirst);
+                         this.nestedCalls.clear();
+                     }
++                    // Monumenta start: break/continue/return
++                    if (SKIP_DEPTH >= 0) {
++                        while (!this.commandQueue.isEmpty() && this.commandQueue.peek().depth >= this.depth - SKIP_DEPTH) {
++                            this.commandQueue.removeFirst();
++                        }
++                        SKIP_DEPTH = -1;
++                    } else {
++                        SKIP_NEXT_LOOP = false;
++                    }
++                    // Monumenta end
+                 } finally {
+                     ServerFunctionManager.this.server.getProfiler().pop();
+                 }
+diff --git a/src/main/java/net/minecraft/server/commands/BreakCommand.java b/src/main/java/net/minecraft/server/commands/BreakCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..130dd3988a0d6356211859e538e6fcb107481227
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/commands/BreakCommand.java
+@@ -0,0 +1,27 @@
++package net.minecraft.server.commands;
++
++import com.mojang.brigadier.CommandDispatcher;
++import com.mojang.brigadier.arguments.IntegerArgumentType;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.CodeBlockArgument;
++import net.minecraft.server.ServerFunctionManager;
++
++// Monumenta: added this command
++public class BreakCommand {
++
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        dispatcher.register(Commands.literal("break").requires((source) -> {
++            return source.hasPermission(2);
++        }).executes(context -> {
++            ServerFunctionManager.SKIP_DEPTH = CodeBlockArgument.countLoopsDepth(1);
++            ServerFunctionManager.SKIP_NEXT_LOOP = true;
++            return 0;
++        }).then(Commands.argument("depth", IntegerArgumentType.integer(1)).executes(context -> {
++            ServerFunctionManager.SKIP_DEPTH = CodeBlockArgument.countLoopsDepth(IntegerArgumentType.getInteger(context, "depth"));
++            ServerFunctionManager.SKIP_NEXT_LOOP = true;
++            return 0;
++        })));
++    }
++
++}
+diff --git a/src/main/java/net/minecraft/server/commands/ContinueCommand.java b/src/main/java/net/minecraft/server/commands/ContinueCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..1733f9f6ca9f46c3cda4361519eefa75cd0f4699
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/commands/ContinueCommand.java
+@@ -0,0 +1,27 @@
++package net.minecraft.server.commands;
++
++import com.mojang.brigadier.CommandDispatcher;
++import com.mojang.brigadier.arguments.IntegerArgumentType;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.CodeBlockArgument;
++import net.minecraft.server.ServerFunctionManager;
++
++// Monumenta: added this command
++public class ContinueCommand {
++
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        dispatcher.register(Commands.literal("continue").requires((source) -> {
++            return source.hasPermission(2);
++        }).executes(context -> {
++            ServerFunctionManager.SKIP_DEPTH = CodeBlockArgument.countLoopsDepth(1);
++            ServerFunctionManager.SKIP_NEXT_LOOP = false;
++            return 0;
++        }).then(Commands.argument("depth", IntegerArgumentType.integer(1)).executes(context -> {
++            ServerFunctionManager.SKIP_DEPTH = CodeBlockArgument.countLoopsDepth(IntegerArgumentType.getInteger(context, "depth"));
++            ServerFunctionManager.SKIP_NEXT_LOOP = false;
++            return 0;
++        })));
++    }
++
++}
+diff --git a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
+index 818596eda9488b98f7b80c6e9d81ccbf6512f488..643fe90b40463a75a1290a1f3649e40fe5f6ecd0 100644
+--- a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
++++ b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
+@@ -232,7 +232,7 @@ public class ExecuteCommand {
+         }, CALLBACK_CHAINER);
+     }
+ 
+-    private static ArgumentBuilder<CommandSourceStack, ?> addConditionals(CommandNode<CommandSourceStack> root, LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, boolean positive) {
++    static ArgumentBuilder<CommandSourceStack, ?> addConditionals(CommandNode<CommandSourceStack> root, LiteralArgumentBuilder<CommandSourceStack> argumentBuilder, boolean positive) {
+         argumentBuilder.then(Commands.literal("block").then(Commands.argument("pos", BlockPosArgument.blockPos()).then(addConditional(root, Commands.argument("block", BlockPredicateArgument.blockPredicate()), positive, (context) -> {
+             return BlockPredicateArgument.getBlockPredicate(context, "block").test(new BlockInWorld(context.getSource().getLevel(), BlockPosArgument.getLoadedBlockPos(context, "pos"), true));
+         })))).then(Commands.literal("score").then(Commands.argument("target", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(Commands.argument("targetObjective", ObjectiveArgument.objective()).then(Commands.literal("=").then(Commands.argument("source", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(addConditional(root, Commands.argument("sourceObjective", ObjectiveArgument.objective()), positive, (context) -> {
+diff --git a/src/main/java/net/minecraft/server/commands/LoopCommand.java b/src/main/java/net/minecraft/server/commands/LoopCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..eb4d1b17597b243d43933e8a587feac2336bb331
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/commands/LoopCommand.java
+@@ -0,0 +1,107 @@
++package net.minecraft.server.commands;
++import com.google.common.collect.Lists;
++import com.mojang.brigadier.CommandDispatcher;
++import com.mojang.brigadier.ParseResults;
++import com.mojang.brigadier.tree.LiteralCommandNode;
++import java.util.List;
++import net.minecraft.commands.CommandFunction;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.CodeBlockArgument;
++import net.minecraft.commands.arguments.DimensionArgument;
++import net.minecraft.commands.arguments.EntityAnchorArgument;
++import net.minecraft.commands.arguments.EntityArgument;
++import net.minecraft.commands.arguments.coordinates.RotationArgument;
++import net.minecraft.commands.arguments.coordinates.SwizzleArgument;
++import net.minecraft.commands.arguments.coordinates.Vec3Argument;
++import net.minecraft.resources.ResourceLocation;
++import net.minecraft.server.ServerFunctionManager;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.world.entity.Entity;
++
++// Monumenta: added this command
++// Code is the same as in RunCommand, with a slight change at the very end to call itself again
++// The only new code is after the comment 'custom code starts here' near the end
++public class LoopCommand {
++
++    public static final ResourceLocation SYNTHETIC_FUNCTION_NAME = new ResourceLocation("minecraft", "synthetic-loop-function");
++
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        LiteralCommandNode<CommandSourceStack> literalCommandNode = dispatcher.register(Commands.literal("loop").requires((source) -> {
++            return source.hasPermission(2);
++        }));
++        dispatcher.register(Commands.literal("loop").requires((source) -> {
++            return source.hasPermission(2);
++        }).then(ExecuteCommand.addConditionals(literalCommandNode, Commands.literal("if"), true)).then(ExecuteCommand.addConditionals(literalCommandNode, Commands.literal("unless"), false)).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withEntity(entity));
++            }
++
++            return list;
++        }))).then(Commands.literal("at").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withLevel((ServerLevel)entity.level).withPosition(entity.position()).withRotation(entity.getRotationVector()));
++            }
++
++            return list;
++        }))).then(Commands.literal("positioned").then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withPosition(Vec3Argument.getVec3(context, "pos")).withAnchor(EntityAnchorArgument.Anchor.FEET);
++        })).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withPosition(entity.position()));
++            }
++
++            return list;
++        })))).then(Commands.literal("rotated").then(Commands.argument("rot", RotationArgument.rotation()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withRotation(RotationArgument.getRotation(context, "rot").getRotation(context.getSource()));
++        })).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withRotation(entity.getRotationVector()));
++            }
++
++            return list;
++        })))).then(Commands.literal("facing").then(Commands.literal("entity").then(Commands.argument("targets", EntityArgument.entities()).then(Commands.argument("anchor", EntityAnchorArgument.anchor()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++            EntityAnchorArgument.Anchor anchor = EntityAnchorArgument.getAnchor(context, "anchor");
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().facing(entity, anchor));
++            }
++
++            return list;
++        })))).then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().facing(Vec3Argument.getVec3(context, "pos"));
++        }))).then(Commands.literal("align").then(Commands.argument("axes", SwizzleArgument.swizzle()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withPosition(context.getSource().getPosition().align(SwizzleArgument.getSwizzle(context, "axes")));
++        }))).then(Commands.literal("anchored").then(Commands.argument("anchor", EntityAnchorArgument.anchor()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withAnchor(EntityAnchorArgument.getAnchor(context, "anchor"));
++        }))).then(Commands.literal("in").then(Commands.argument("dimension", DimensionArgument.dimension()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withLevel(DimensionArgument.getDimension(context, "dimension"));
++        })))
++
++        // custom code starts here
++        .then(Commands.literal("{").then(Commands.argument("code block", CodeBlockArgument.codeBlock(SYNTHETIC_FUNCTION_NAME))
++        .executes((context) -> {
++            if (ServerFunctionManager.SKIP_NEXT_LOOP) {
++                return 0;
++            }
++            ParseResults<CommandSourceStack> command = (ParseResults<CommandSourceStack>) CommandDispatcher.CURRENT_COMMAND;
++
++            // run code block
++            CommandFunction codeBlock = CodeBlockArgument.getCodeBlock(context, "code block");
++            context.getSource().getServer().getFunctions().execute(codeBlock, context.getSource());
++
++            // run the loop command itself again
++            context.getSource().getServer().getFunctions().executeCommandInFunction(command, context.getSource(), 0);
++            return 0;
++        }))));
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/commands/ReturnCommand.java b/src/main/java/net/minecraft/server/commands/ReturnCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..47b111ee6e57dd934dab1a84dff6836157785e48
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/commands/ReturnCommand.java
+@@ -0,0 +1,22 @@
++package net.minecraft.server.commands;
++
++import com.mojang.brigadier.CommandDispatcher;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.CodeBlockArgument;
++import net.minecraft.server.ServerFunctionManager;
++
++// Monumenta: added this command
++public class ReturnCommand {
++
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        dispatcher.register(Commands.literal("return").requires((source) -> {
++            return source.hasPermission(2);
++        }).executes(context -> {
++            ServerFunctionManager.SKIP_DEPTH = CodeBlockArgument.countBlocks();
++            ServerFunctionManager.SKIP_NEXT_LOOP = false;
++            return 0;
++        }));
++    }
++
++}
+diff --git a/src/main/java/net/minecraft/server/commands/RunCommand.java b/src/main/java/net/minecraft/server/commands/RunCommand.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..696540fe9814bae2222f33673702ac701e19d417
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/commands/RunCommand.java
+@@ -0,0 +1,98 @@
++package net.minecraft.server.commands;
++
++import com.google.common.collect.Lists;
++import com.mojang.brigadier.CommandDispatcher;
++import com.mojang.brigadier.tree.LiteralCommandNode;
++import java.util.List;
++import net.minecraft.commands.CommandFunction;
++import net.minecraft.commands.CommandSourceStack;
++import net.minecraft.commands.Commands;
++import net.minecraft.commands.arguments.CodeBlockArgument;
++import net.minecraft.commands.arguments.DimensionArgument;
++import net.minecraft.commands.arguments.EntityAnchorArgument;
++import net.minecraft.commands.arguments.EntityArgument;
++import net.minecraft.commands.arguments.coordinates.RotationArgument;
++import net.minecraft.commands.arguments.coordinates.SwizzleArgument;
++import net.minecraft.commands.arguments.coordinates.Vec3Argument;
++import net.minecraft.resources.ResourceLocation;
++import net.minecraft.server.level.ServerLevel;
++import net.minecraft.world.entity.Entity;
++
++// Monumenta: added this command
++// Code is copied from ExecuteCommand, with the 'store' and 'run' arguments removed (and the command name changed to 'run')
++// The only new code is after the comment 'custom code starts here' near the end
++public class RunCommand {
++
++    public static final ResourceLocation SYNTHETIC_FUNCTION_NAME = new ResourceLocation("minecraft", "synthetic-run-function");
++
++    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
++        LiteralCommandNode<CommandSourceStack> literalCommandNode = dispatcher.register(Commands.literal("run").requires((source) -> {
++            return source.hasPermission(2);
++        }));
++        dispatcher.register(Commands.literal("run").requires((source) -> {
++            return source.hasPermission(2);
++        }).then(ExecuteCommand.addConditionals(literalCommandNode, Commands.literal("if"), true)).then(ExecuteCommand.addConditionals(literalCommandNode, Commands.literal("unless"), false)).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withEntity(entity));
++            }
++
++            return list;
++        }))).then(Commands.literal("at").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withLevel((ServerLevel)entity.level).withPosition(entity.position()).withRotation(entity.getRotationVector()));
++            }
++
++            return list;
++        }))).then(Commands.literal("positioned").then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withPosition(Vec3Argument.getVec3(context, "pos")).withAnchor(EntityAnchorArgument.Anchor.FEET);
++        })).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withPosition(entity.position()));
++            }
++
++            return list;
++        })))).then(Commands.literal("rotated").then(Commands.argument("rot", RotationArgument.rotation()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withRotation(RotationArgument.getRotation(context, "rot").getRotation(context.getSource()));
++        })).then(Commands.literal("as").then(Commands.argument("targets", EntityArgument.entities()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().withRotation(entity.getRotationVector()));
++            }
++
++            return list;
++        })))).then(Commands.literal("facing").then(Commands.literal("entity").then(Commands.argument("targets", EntityArgument.entities()).then(Commands.argument("anchor", EntityAnchorArgument.anchor()).fork(literalCommandNode, (context) -> {
++            List<CommandSourceStack> list = Lists.newArrayList();
++            EntityAnchorArgument.Anchor anchor = EntityAnchorArgument.getAnchor(context, "anchor");
++
++            for(Entity entity : EntityArgument.getOptionalEntities(context, "targets")) {
++                list.add(context.getSource().facing(entity, anchor));
++            }
++
++            return list;
++        })))).then(Commands.argument("pos", Vec3Argument.vec3()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().facing(Vec3Argument.getVec3(context, "pos"));
++        }))).then(Commands.literal("align").then(Commands.argument("axes", SwizzleArgument.swizzle()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withPosition(context.getSource().getPosition().align(SwizzleArgument.getSwizzle(context, "axes")));
++        }))).then(Commands.literal("anchored").then(Commands.argument("anchor", EntityAnchorArgument.anchor()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withAnchor(EntityAnchorArgument.getAnchor(context, "anchor"));
++        }))).then(Commands.literal("in").then(Commands.argument("dimension", DimensionArgument.dimension()).redirect(literalCommandNode, (context) -> {
++            return context.getSource().withLevel(DimensionArgument.getDimension(context, "dimension"));
++        })))
++
++        // custom code starts here
++        .then(Commands.literal("{").then(Commands.argument("code block", CodeBlockArgument.codeBlock(SYNTHETIC_FUNCTION_NAME))
++        .executes((context) -> {
++            CommandFunction codeBlock = CodeBlockArgument.getCodeBlock(context, "code block");
++            context.getSource().getServer().getFunctions().execute(codeBlock, context.getSource());
++            return 0;
++        }))));
++    }
++
++}
