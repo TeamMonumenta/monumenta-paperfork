@@ -1,0 +1,200 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Mon, 1 May 2023 06:46:59 -0400
+Subject: [PATCH] Monumenta - Add events for loading and saving stats data
+
+
+diff --git a/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataLoadEvent.java b/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataLoadEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..b936e630baebe26786eb4d5621318cba569443f2
+--- /dev/null
++++ b/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataLoadEvent.java
+@@ -0,0 +1,93 @@
++package com.destroystokyo.paper.event.player;
++
++import java.io.File;
++import org.bukkit.OfflinePlayer;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++import org.jetbrains.annotations.Nullable;
++
++/**
++ * Called when the server loads the server stats data for a player
++ */
++public class ServerStatsDataLoadEvent extends Event {
++    private static final HandlerList handlers = new HandlerList();
++    private final OfflinePlayer offlinePlayer;
++    @Nullable private String jsonData;
++    @NotNull private File path;
++
++    public ServerStatsDataLoadEvent(@NotNull OfflinePlayer who, @NotNull File path) {
++        this.offlinePlayer = who;
++        this.jsonData = null;
++        this.path = path;
++    }
++
++    /**
++     * Returns the player involved in this event
++     *
++     * @return Player who is involved in this event
++     */
++    @NotNull
++    public final OfflinePlayer getPlayer() {
++        return this.offlinePlayer;
++    }
++
++    /**
++     * Get the file path where server stats data will be loaded from.
++     * <p>
++     * Data will only be loaded from here if the data is not directly set by {@link #setJsonData}
++     *
++     * @return server stats data File to load from
++     */
++    @NotNull
++    public File getPath() {
++        return path;
++    }
++
++    /**
++     * Set the file path where server stats data will be loaded from.
++     * <p>
++     * Data will only be loaded from here if the data is not directly set by {@link #setJsonData}
++     *
++     * @param path server stats data File to load from
++     */
++    public void setPath(@NotNull File path) {
++        this.path = path;
++    }
++
++    /**
++     * Get the JSON data supplied by an earlier call to {@link #setJsonData}.
++     * <p>
++     * This data will be used instead of loading the player's server stats file. It is null unless
++     * supplied by a plugin.
++     *
++     * @return JSON data of the player's server stats as set by {@link #setJsonData}
++     */
++    @Nullable
++    public String getJsonData() {
++        return jsonData;
++    }
++
++    /**
++     * Set the JSON data to use for the player's server stats instead of loading it from a file.
++     * <p>
++     * This data will be used instead of loading the player's server stats file. It is null unless
++     * supplied by a plugin.
++     *
++     * @param jsonData server stats data JSON string to load. If null, load from file
++     */
++    public void setJsonData(@Nullable String jsonData) {
++        this.jsonData = jsonData;
++    }
++
++    @NotNull
++    @Override
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}
+diff --git a/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataSaveEvent.java b/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataSaveEvent.java
+new file mode 100644
+index 0000000000000000000000000000000000000000..db3e956227fe62e2dd139cc127a2780c5c60b620
+--- /dev/null
++++ b/src/main/java/com/destroystokyo/paper/event/player/ServerStatsDataSaveEvent.java
+@@ -0,0 +1,89 @@
++package com.destroystokyo.paper.event.player;
++
++import java.io.File;
++import org.bukkit.OfflinePlayer;
++import org.bukkit.event.Cancellable;
++import org.bukkit.event.Event;
++import org.bukkit.event.HandlerList;
++import org.jetbrains.annotations.NotNull;
++
++/**
++ * Called when the server saves the server stats data for a player
++ */
++public class ServerStatsDataSaveEvent extends Event implements Cancellable {
++    private static final HandlerList handlers = new HandlerList();
++    private final OfflinePlayer offlinePlayer;
++    @NotNull private String jsonData;
++    @NotNull private File path;
++    private boolean cancel = false;
++
++    public ServerStatsDataSaveEvent(@NotNull OfflinePlayer who, @NotNull File path, @NotNull String jsonData) {
++        this.offlinePlayer = who;
++        this.jsonData = jsonData;
++        this.path = path;
++    }
++
++    /**
++     * Returns the player involved in this event
++     *
++     * @return Player who is involved in this event
++     */
++    @NotNull
++    public final OfflinePlayer getPlayer() {
++        return this.offlinePlayer;
++    }
++
++    /**
++     * Get the file path where server stats data will be saved to.
++     *
++     * @return server stats data File to save to
++     */
++    @NotNull
++    public File getPath() {
++        return path;
++    }
++
++    /**
++     * Set the file path where server stats data will be saved to.
++     */
++    public void setPath(@NotNull File path) {
++        this.path = path;
++    }
++
++    /**
++     * Get the JSON server stats data that will be saved.
++     *
++     * @return JSON data of the player's server stats
++     */
++    @NotNull
++    public String getJsonData() {
++        return jsonData;
++    }
++
++    /**
++     * Set the JSON server stats data that will be saved.
++     *
++     * @param jsonData server stats data JSON string to save instead
++     */
++    public void setJsonData(@NotNull String jsonData) {
++        this.jsonData = jsonData;
++    }
++
++    public boolean isCancelled() {
++        return cancel;
++    }
++
++    public void setCancelled(boolean cancel) {
++        this.cancel = cancel;
++    }
++
++    @NotNull
++    public HandlerList getHandlers() {
++        return handlers;
++    }
++
++    @NotNull
++    public static HandlerList getHandlerList() {
++        return handlers;
++    }
++}
