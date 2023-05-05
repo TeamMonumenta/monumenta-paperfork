@@ -1,0 +1,82 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Peter=20G=C3=BCttinger?= <njol@gmx.ch>
+Date: Wed, 7 Sep 2022 08:28:57 +0200
+Subject: [PATCH] Monumenta - add IFRAMES DamageModifier and fix issues in
+ EntityDamageEvent
+
+
+diff --git a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
+index 07538e1b94921429ddb277c154e5d5c83d095b3e..04419e091576ff48f4bef32ca7c77006f05bb3cd 100644
+--- a/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
++++ b/src/main/java/org/bukkit/event/entity/EntityDamageEvent.java
+@@ -137,9 +137,10 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
+      * @return the amount of damage caused by the event
+      */
+     public final double getFinalDamage() {
+-        double damage = 0;
++		// Monumenta: fix floating-point inaccuracies
++        float damage = 0;
+         for (DamageModifier modifier : MODIFIERS) {
+-            damage += getDamage(modifier);
++            damage += (float) getDamage(modifier);
+         }
+         return damage;
+     }
+@@ -147,23 +148,24 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
+     /**
+      * Sets the raw amount of damage caused by the event.
+      * <p>
+-     * For compatibility this also recalculates the modifiers and scales
+-     * them by the difference between the modifier for the previous damage
+-     * value and the new one.
++     * This also recalculates all modifiers.
+      *
+      * @param damage The raw amount of damage caused by the event
+      */
+     public void setDamage(double damage) {
++		// Monumenta: various changes to properly recalculate modifiers and to fix floating-point inaccuracies
+         // These have to happen in the same order as the server calculates them, keep the enum sorted
+-        double remaining = damage;
+-        double oldRemaining = getDamage(DamageModifier.BASE);
++        float remaining = (float) damage;
++        //double oldRemaining = getDamage(DamageModifier.BASE);
+         for (DamageModifier modifier : MODIFIERS) {
+             if (!isApplicable(modifier)) {
+                 continue;
+             }
+ 
+             Function<? super Double, Double> modifierFunction = modifierFunctions.get(modifier);
+-            double newVanilla = modifierFunction.apply(remaining);
++            float newVanilla = modifierFunction.apply((double) remaining).floatValue();
++            setDamage(modifier, newVanilla);
++            /*
+             double oldVanilla = modifierFunction.apply(oldRemaining);
+             double difference = oldVanilla - newVanilla;
+ 
+@@ -174,11 +176,12 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
+             } else {
+                 setDamage(modifier, Math.min(0, old - difference));
+             }
++            */
+             remaining += newVanilla;
+-            oldRemaining += oldVanilla;
++            //oldRemaining += oldVanilla;
+         }
+ 
+-        setDamage(DamageModifier.BASE, damage);
++        setDamage(DamageModifier.BASE, (float) damage);
+     }
+ 
+     /**
+@@ -217,6 +220,11 @@ public class EntityDamageEvent extends EntityEvent implements Cancellable {
+          * raw {@link EntityDamageEvent#getDamage()}.
+          */
+         BASE,
++        // Monumenta: added this
++        /**
++         * This represents the damage reduction caused by active iframes.
++         */
++        IFRAMES,
+         /**
+          * This represents the damage reduced by a wearing a helmet when hit
+          * by a falling block.
