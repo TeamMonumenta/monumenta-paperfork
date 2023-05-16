@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Mobs that despawn return to their spawners
 
 
 diff --git a/src/main/java/net/minecraft/server/level/ServerPlayer.java b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-index 4994f5a2f0f641aee45b8bcc6eca40cd87798764..03eeee5b0adf1da67c6848544de47c62eeba831c 100644
+index 23f7a2e69a64b8772d432b3f37cddc376c6f5cec..2bf67659e4701c65d741ebdd4ac1b5fa8ece51a7 100644
 --- a/src/main/java/net/minecraft/server/level/ServerPlayer.java
 +++ b/src/main/java/net/minecraft/server/level/ServerPlayer.java
-@@ -989,6 +989,15 @@ public class ServerPlayer extends Player {
+@@ -998,6 +998,15 @@ public class ServerPlayer extends Player {
          this.setSharedFlagOnFire(false);
          this.getCombatTracker().recheckStatus();
          this.setLastDeathLocation(Optional.of(GlobalPos.of(this.level.dimension(), this.blockPosition())));
@@ -25,10 +25,10 @@ index 4994f5a2f0f641aee45b8bcc6eca40cd87798764..03eeee5b0adf1da67c6848544de47c62
  
      private void tellNeutralMobsThatIDied() {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index 7555b04dcf274bb624b89f2eb9ff80da0056de4e..ad2b3d67645497d8162b723a47d9917c2d640d1c 100644
+index df316ca580a0a3b4ba6b658f7d7bdf542f4ad85b..4317de12fa47075fc9bb37337cd77da4cbc0b2c5 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -392,6 +392,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -394,6 +394,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public boolean fromNetherPortal; // Paper
      protected int numCollisions = 0; // Paper
      public boolean spawnedViaMobSpawner; // Paper - Yes this name is similar to above, upstream took the better one
@@ -37,7 +37,7 @@ index 7555b04dcf274bb624b89f2eb9ff80da0056de4e..ad2b3d67645497d8162b723a47d9917c
      @javax.annotation.Nullable
      private org.bukkit.util.Vector origin;
      @javax.annotation.Nullable
-@@ -673,6 +675,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -675,6 +677,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return this.id;
      }
  
@@ -72,10 +72,10 @@ index 7555b04dcf274bb624b89f2eb9ff80da0056de4e..ad2b3d67645497d8162b723a47d9917c
          this.setRemoved(reason);
      }
 diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
-index 49b983064ea810382b6112f5dc7f93ba4e5710bd..a219e45fb1a8709cbab7839cd5535bc2d108d17f 100644
+index 02cb6b8c1d59855ff4a8aad3024fe12007eca0ee..deaef94ff1e631610c11961b8324e0fa720000ec 100644
 --- a/src/main/java/net/minecraft/world/entity/Mob.java
 +++ b/src/main/java/net/minecraft/world/entity/Mob.java
-@@ -824,7 +824,7 @@ public abstract class Mob extends LivingEntity {
+@@ -853,7 +853,7 @@ public abstract class Mob extends LivingEntity implements Targeting {
      @Override
      public void checkDespawn() {
          if (this.level.getDifficulty() == Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
@@ -84,7 +84,7 @@ index 49b983064ea810382b6112f5dc7f93ba4e5710bd..a219e45fb1a8709cbab7839cd5535bc2
          } else if (!this.isPersistenceRequired() && !this.requiresCustomPersistence()) {
              // Paper start - optimise checkDespawn
              Player entityhuman = this.level.findNearbyPlayer(this, level.paperConfig().entities.spawning.despawnRanges.get(this.getType().getCategory()).hard() + 1, EntitySelector.PLAYER_AFFECTS_SPAWNING); // Paper
-@@ -839,14 +839,14 @@ public abstract class Mob extends LivingEntity {
+@@ -868,14 +868,14 @@ public abstract class Mob extends LivingEntity implements Targeting {
                  int j = i * i;
  
                  if (d0 > (double) j && this.removeWhenFarAway(d0)) {
@@ -102,7 +102,7 @@ index 49b983064ea810382b6112f5dc7f93ba4e5710bd..a219e45fb1a8709cbab7839cd5535bc2
                      this.noActionTime = 0;
                  }
 diff --git a/src/main/java/net/minecraft/world/level/BaseSpawner.java b/src/main/java/net/minecraft/world/level/BaseSpawner.java
-index 1b448ea7b4de036acfb9db53a88042c92921adf5..694765318c773227edfef62d4bdb34adf898eb47 100644
+index 366c72a288c24732a65f6b7732e7d8e321bbb2cb..e6949cf4559073de85409ce7de41efb2e7e7ee09 100644
 --- a/src/main/java/net/minecraft/world/level/BaseSpawner.java
 +++ b/src/main/java/net/minecraft/world/level/BaseSpawner.java
 @@ -46,6 +46,7 @@ public abstract class BaseSpawner {

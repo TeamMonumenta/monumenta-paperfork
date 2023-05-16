@@ -5,19 +5,19 @@ Subject: [PATCH] Monumenta - Fix Generating Loot Table Contents
 
 
 diff --git a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
-index 46a7585d1a161dd598e2cdd7244874390fe821c5..f147acf1f44f44fb053b0f08e41985f5083a4dc7 100644
+index ecbce397f06fcdaa4e72e49cc9765d9736abdd00..9b851f39abf4e3073a199d376b3cee19bc483756 100644
 --- a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
 +++ b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
-@@ -86,7 +86,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
+@@ -87,7 +87,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
          }
-         this.setMaybe(builder, LootContextParams.ORIGIN, new Vec3(loc.getX(), loc.getY(), loc.getZ()));
+         this.setMaybe(builder, LootContextParams.ORIGIN, CraftLocation.toVec3D(loc));
          if (this.getHandle() != LootTable.EMPTY) {
 -            // builder.luck(context.getLuck());
-+            builder.withLuck(context.getLuck());
++            builder.withLuck(context.getLuck()); // Monumenta
  
              if (context.getLootedEntity() != null) {
                  Entity nmsLootedEntity = ((CraftEntity) context.getLootedEntity()).getHandle();
-@@ -113,12 +113,10 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
+@@ -114,12 +114,10 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
          // SPIGOT-5603 - Avoid IllegalArgumentException in LootTableInfo#build()
          LootContextParamSet.Builder nmsBuilder = new LootContextParamSet.Builder();
          for (LootContextParam<?> param : this.getHandle().getParamSet().getRequired()) {

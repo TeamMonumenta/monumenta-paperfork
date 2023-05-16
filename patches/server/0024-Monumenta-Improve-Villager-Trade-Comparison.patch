@@ -5,7 +5,7 @@ Subject: [PATCH] Monumenta - Improve Villager Trade Comparison
 
 
 diff --git a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
-index 8a9a701baabdaf066cd9b28c05430f673fcafb4e..4027fa557db8fcf8586eaf43516291055a8d6079 100644
+index fd50d1c2435b82215bc5b3fdbe5044d426bc342e..029736201f90bb4a0223386d1e144911ab10d4dc 100644
 --- a/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
 +++ b/src/main/java/net/minecraft/world/item/trading/MerchantOffer.java
 @@ -220,17 +220,51 @@ public class MerchantOffer {

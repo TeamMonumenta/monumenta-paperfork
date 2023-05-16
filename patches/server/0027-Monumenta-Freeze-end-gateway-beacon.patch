@@ -5,7 +5,7 @@ Subject: [PATCH] Monumenta - Freeze end gateway beacon
 
 
 diff --git a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
-index f80545f80948db27d1fbde77d0505c916eb504ed..98f336e738c21ac97667d7446b8359e647169902 100644
+index c2bc747e9b9dd02971c13cb88e7aebeca8c0f2aa..b76afe9bcad9af8b3c74379bf5b7f2b203b232d9 100644
 --- a/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
 +++ b/src/main/java/net/minecraft/world/level/block/entity/TheEndGatewayBlockEntity.java
 @@ -56,6 +56,7 @@ public class TheEndGatewayBlockEntity extends TheEndPortalBlockEntity {

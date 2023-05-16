@@ -5,17 +5,17 @@ Subject: [PATCH] Monumenta - Handle iframes after damage event
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-index 61109566c2147f07dac9a5956eda1b68381c42e9..552a1dead50592154693da39bc8a1500dfe7205b 100644
+index 0d128ddb413abc09dbad036bf64c8863d33101f3..94dc4c94845ece9386f97968e62792de9e62c512 100644
 --- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
 +++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
-@@ -1367,31 +1367,11 @@ public abstract class LivingEntity extends Entity {
+@@ -1364,31 +1364,11 @@ public abstract class LivingEntity extends Entity implements Attackable {
              }
  
-             this.animationSpeed = 1.5F;
+             this.walkAnimation.setSpeed(1.5F);
 -            boolean flag1 = true;
 +            boolean flag1 = !((float) this.invulnerableTime > (float) this.invulnerableDuration / 2.0F);
  
--            if ((float) this.invulnerableTime > (float) this.invulnerableDuration / 2.0F) { // CraftBukkit - restore use of maxNoDamageTicks
+-            if ((float) this.invulnerableTime > (float) this.invulnerableDuration / 2.0F && !source.is(DamageTypeTags.BYPASSES_COOLDOWN)) { // CraftBukkit - restore use of maxNoDamageTicks
 -                if (amount <= this.lastHurt) {
 -                    return false;
 -                }
@@ -44,13 +44,14 @@ index 61109566c2147f07dac9a5956eda1b68381c42e9..552a1dead50592154693da39bc8a1500
              }
  
              // CraftBukkit - Moved into damageEntity0(DamageSource, float)
-@@ -2089,6 +2069,21 @@ public abstract class LivingEntity extends Entity {
+@@ -2086,6 +2066,22 @@ public abstract class LivingEntity extends Entity implements Attackable {
         if (!this.isInvulnerableTo(damagesource)) {
              final boolean human = this instanceof net.minecraft.world.entity.player.Player;
              float originalDamage = f;
 +
 +            // Monumenta: use post-event damage for iframes instead of pre-event damage
 +            // Needs to be a damage modifier so that event.getFinalDamage() properly returns the actual final damage of the event
++            // Re-add source.is(DamageTypeTags.BYPASSES_COOLDOWN) if the tag is ever not empty
 +            Function<Double, Double> iframes = new Function<Double, Double>() {
 +                @Override
 +                public Double apply(Double f) {
@@ -66,7 +67,7 @@ index 61109566c2147f07dac9a5956eda1b68381c42e9..552a1dead50592154693da39bc8a1500
              Function<Double, Double> hardHat = new Function<Double, Double>() {
                  @Override
                  public Double apply(Double f) {
-@@ -2152,7 +2147,7 @@ public abstract class LivingEntity extends Entity {
+@@ -2149,7 +2145,7 @@ public abstract class LivingEntity extends Entity implements Attackable {
              };
              float absorptionModifier = absorption.apply((double) f).floatValue();
  
@@ -75,43 +76,43 @@ index 61109566c2147f07dac9a5956eda1b68381c42e9..552a1dead50592154693da39bc8a1500
              if (damagesource.getEntity() instanceof net.minecraft.world.entity.player.Player) {
                  // Paper start - PlayerAttackEntityCooldownResetEvent
                  if (damagesource.getEntity() instanceof ServerPlayer) {
-@@ -2169,6 +2164,20 @@ public abstract class LivingEntity extends Entity {
+@@ -2166,6 +2162,20 @@ public abstract class LivingEntity extends Entity implements Attackable {
                  return false;
              }
  
-+            // Monumenta: use post-event damage for iframes instead of pre-event damage
-+            if ((float) invulnerableTime > (float) invulnerableDuration / 2.0F) {
-+                float damage = (float) event.getDamage();
-+                if (damage <= lastHurt) {
-+                    return false;
-+                }
-+                this.lastHurt = damage;
-+            } else {
-+                this.lastHurt = (float) event.getDamage();
-+                this.invulnerableTime = this.invulnerableDuration;
-+                this.hurtDuration = 10;
-+                this.hurtTime = 10;
-+            }
++           // Monumenta: use post-event damage for iframes instead of pre-event damage
++           if ((float) invulnerableTime > (float) invulnerableDuration / 2.0F) {
++               float damage = (float) event.getDamage();
++               if (damage <= lastHurt) {
++                   return false;
++               }
++               this.lastHurt = damage;
++           } else {
++               this.lastHurt = (float) event.getDamage();
++               this.invulnerableTime = this.invulnerableDuration;
++               this.hurtDuration = 10;
++               this.hurtTime = 10;
++           }
 +
              f = (float) event.getFinalDamage();
  
              // Resistance
 diff --git a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-index 217358c504d62757488b0eec3087ad09e2027770..114afd9f629b435db1536150ede1a789df0cf611 100644
+index 60da9faad634816516ea2abc4f3c967d414ff254..f960581dfb1b355ec3db8ccb8d838052e359d4fa 100644
 --- a/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
 +++ b/src/main/java/org/bukkit/craftbukkit/event/CraftEventFactory.java
-@@ -1166,11 +1166,13 @@ public class CraftEventFactory {
+@@ -1192,11 +1192,13 @@ public class CraftEventFactory {
  
      private static final Function<? super Double, Double> ZERO = Functions.constant(-0.0);
  
 -    public static EntityDamageEvent handleLivingEntityDamageEvent(Entity damagee, DamageSource source, double rawDamage, double hardHatModifier, double blockingModifier, double armorModifier, double resistanceModifier, double magicModifier, double absorptionModifier, Function<Double, Double> hardHat, Function<Double, Double> blocking, Function<Double, Double> armor, Function<Double, Double> resistance, Function<Double, Double> magic, Function<Double, Double> absorption) {
 +    public static EntityDamageEvent handleLivingEntityDamageEvent(Entity damagee, DamageSource source, double rawDamage, double iframesModifier, double hardHatModifier, double blockingModifier, double armorModifier, double resistanceModifier, double magicModifier, double absorptionModifier, Function<Double, Double> iframes, Function<Double, Double> hardHat, Function<Double, Double> blocking, Function<Double, Double> armor, Function<Double, Double> resistance, Function<Double, Double> magic, Function<Double, Double> absorption) {
-         Map<DamageModifier, Double> modifiers = new EnumMap<DamageModifier, Double>(DamageModifier.class);
-         Map<DamageModifier, Function<? super Double, Double>> modifierFunctions = new EnumMap<DamageModifier, Function<? super Double, Double>>(DamageModifier.class);
+         Map<DamageModifier, Double> modifiers = new EnumMap<>(DamageModifier.class);
+         Map<DamageModifier, Function<? super Double, Double>> modifierFunctions = new EnumMap<>(DamageModifier.class);
          modifiers.put(DamageModifier.BASE, rawDamage);
          modifierFunctions.put(DamageModifier.BASE, ZERO);
 +        modifiers.put(DamageModifier.IFRAMES, iframesModifier);
 +        modifierFunctions.put(DamageModifier.IFRAMES, iframes);
-         if ("fallingBlock".equals(source.msgId) || "anvil".equals(source.msgId)) {
+         if (source.is(DamageTypes.FALLING_BLOCK) || source.is(DamageTypes.FALLING_ANVIL)) {
              modifiers.put(DamageModifier.HARD_HAT, hardHatModifier);
              modifierFunctions.put(DamageModifier.HARD_HAT, hardHat);

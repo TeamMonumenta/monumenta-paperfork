@@ -6,101 +6,95 @@ Subject: [PATCH] Monumenta - Add events for loading and saving advancement
 
 
 diff --git a/src/main/java/net/minecraft/server/PlayerAdvancements.java b/src/main/java/net/minecraft/server/PlayerAdvancements.java
-index a0c19503aabab5378d672a30163d35a5ba05b6c1..5adb1a2e63166d4802523bd926b5f865ddd7d39d 100644
+index 26888ebd38280de92e41dd8006d2b24e874afe26..f420c4e109f0053f7e24f12f8a8e79c6bbf535cb 100644
 --- a/src/main/java/net/minecraft/server/PlayerAdvancements.java
 +++ b/src/main/java/net/minecraft/server/PlayerAdvancements.java
-@@ -53,7 +53,7 @@ public class PlayerAdvancements {
+@@ -13,6 +13,7 @@ import com.mojang.serialization.Dynamic;
+ import com.mojang.serialization.JsonOps;
+ import java.io.BufferedWriter;
+ import java.io.IOException;
++import java.io.StringReader;
+ import java.nio.charset.StandardCharsets;
+ import java.nio.file.Files;
+ import java.nio.file.LinkOption;
+@@ -48,7 +49,7 @@ import org.slf4j.Logger;
+ public class PlayerAdvancements {
  
      private static final Logger LOGGER = LogUtils.getLogger();
-     private static final int VISIBILITY_DEPTH = 2;
 -    private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(AdvancementProgress.class, new AdvancementProgress.Serializer()).registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer()).setPrettyPrinting().create();
 +    private static final Gson GSON = (new GsonBuilder()).registerTypeAdapter(AdvancementProgress.class, new AdvancementProgress.Serializer()).registerTypeAdapter(ResourceLocation.class, new ResourceLocation.Serializer()).create(); // MONUMENTA
      private static final TypeToken<Map<ResourceLocation, AdvancementProgress>> TYPE_TOKEN = new TypeToken<Map<ResourceLocation, AdvancementProgress>>() {
      };
      private final DataFixer dataFixer;
-@@ -153,9 +153,18 @@ public class PlayerAdvancements {
+@@ -124,9 +125,18 @@ public class PlayerAdvancements {
      }
  
      private void load(ServerAdvancementManager advancementLoader) {
--        if (this.file.isFile()) {
+-        if (Files.isRegularFile(this.playerSavePath, new LinkOption[0])) {
 +        // Paper Start
-+        com.destroystokyo.paper.event.player.PlayerAdvancementDataLoadEvent event = new com.destroystokyo.paper.event.player.PlayerAdvancementDataLoadEvent(this.player.getBukkitEntity(), this.file);
++        com.destroystokyo.paper.event.player.PlayerAdvancementDataLoadEvent event = new com.destroystokyo.paper.event.player.PlayerAdvancementDataLoadEvent(this.player.getBukkitEntity(), this.playerSavePath.toFile());
 +        event.callEvent();
-+        if (event.getPath().isFile() || event.getJsonData() != null) {
++        if (Files.isRegularFile(event.getPath().toPath(), new LinkOption[0]) || event.getJsonData() != null) {
              try {
--                JsonReader jsonreader = new JsonReader(new StringReader(Files.toString(this.file, StandardCharsets.UTF_8)));
+-                JsonReader jsonreader = new JsonReader(Files.newBufferedReader(this.playerSavePath, StandardCharsets.UTF_8));
 +                final JsonReader jsonreader;
 +                if (event.getJsonData() != null) {
 +                    jsonreader = new JsonReader(new StringReader(event.getJsonData()));
 +                } else {
-+                    jsonreader = new JsonReader(new StringReader(Files.toString(event.getPath(), StandardCharsets.UTF_8)));
++                    jsonreader = new JsonReader(Files.newBufferedReader(event.getPath().toPath(), StandardCharsets.UTF_8));
 +                }
 +                // Paper End
  
                  try {
                      jsonreader.setLenient(false);
-@@ -183,7 +192,7 @@ public class PlayerAdvancements {
+@@ -147,7 +157,7 @@ public class PlayerAdvancements {
                          if (advancement == null) {
                              // CraftBukkit start
                              if (entry.getKey().getNamespace().equals("minecraft")) {
--                                PlayerAdvancements.LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", entry.getKey(), this.file);
-+                                PlayerAdvancements.LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", entry.getKey(), event.getPath());
+-                                PlayerAdvancements.LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", entry.getKey(), this.playerSavePath);
++                                PlayerAdvancements.LOGGER.warn("Ignored advancement '{}' in progress file {} - it doesn't exist anymore?", entry.getKey(), event.getPath().toPath());
                              }
                              // CraftBukkit end
                          } else {
-@@ -202,9 +211,9 @@ public class PlayerAdvancements {
+@@ -168,9 +178,9 @@ public class PlayerAdvancements {
  
                  jsonreader.close();
              } catch (JsonParseException jsonparseexception) {
--                PlayerAdvancements.LOGGER.error("Couldn't parse player advancements in {}", this.file, jsonparseexception);
-+                PlayerAdvancements.LOGGER.error("Couldn't parse player advancements in {}", event.getPath(), jsonparseexception);
+-                PlayerAdvancements.LOGGER.error("Couldn't parse player advancements in {}", this.playerSavePath, jsonparseexception);
++                PlayerAdvancements.LOGGER.error("Couldn't parse player advancements in {}", event.getPath().toPath(), jsonparseexception);
              } catch (IOException ioexception) {
--                PlayerAdvancements.LOGGER.error("Couldn't access player advancements in {}", this.file, ioexception);
-+                PlayerAdvancements.LOGGER.error("Couldn't access player advancements in {}", event.getPath(), ioexception);
+-                PlayerAdvancements.LOGGER.error("Couldn't access player advancements in {}", this.playerSavePath, ioexception);
++                PlayerAdvancements.LOGGER.error("Couldn't access player advancements in {}", event.getPath().toPath(), ioexception);
              }
          }
  
-@@ -227,22 +236,28 @@ public class PlayerAdvancements {
-             }
-         }
+@@ -196,9 +206,18 @@ public class PlayerAdvancements {
  
--        if (this.file.getParentFile() != null) {
--            this.file.getParentFile().mkdirs();
--        }
--
-         JsonElement jsonelement = PlayerAdvancements.GSON.toJsonTree(map);
- 
-         jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getCurrentVersion().getWorldVersion());
+         jsonelement.getAsJsonObject().addProperty("DataVersion", SharedConstants.getCurrentVersion().getDataVersion().getVersion());
  
 +        // Paper start
-+        com.destroystokyo.paper.event.player.PlayerAdvancementDataSaveEvent event = new com.destroystokyo.paper.event.player.PlayerAdvancementDataSaveEvent(this.player.getBukkitEntity(), this.file, PlayerAdvancements.GSON.toJson(jsonelement));
-+        if (!event.callEvent()) {
-+            return;
-+        }
-+        if (event.getPath().getParentFile() != null) {
-+            event.getPath().getParentFile().mkdirs();
-+        }
-+        // Paper end
-+
++        com.destroystokyo.paper.event.player.PlayerAdvancementDataSaveEvent event = new com.destroystokyo.paper.event.player.PlayerAdvancementDataSaveEvent(this.player.getBukkitEntity(), this.playerSavePath.toFile(), PlayerAdvancements.GSON.toJson(jsonelement));
          try {
--            FileOutputStream fileoutputstream = new FileOutputStream(this.file);
-+            FileOutputStream fileoutputstream = new FileOutputStream(event.getPath());
+-            FileUtil.createDirectoriesSafe(this.playerSavePath.getParent());
+-            BufferedWriter bufferedwriter = Files.newBufferedWriter(this.playerSavePath, StandardCharsets.UTF_8);
++            if (!event.callEvent()) {
++                return;
++            }
++            if (event.getPath().getParentFile() != null) {
++                event.getPath().getParentFile().mkdirs();
++            }
++            // Paper end
++
++            BufferedWriter bufferedwriter = Files.newBufferedWriter(event.getPath().toPath(), StandardCharsets.UTF_8);
  
              try {
-                 OutputStreamWriter outputstreamwriter = new OutputStreamWriter(fileoutputstream, Charsets.UTF_8.newEncoder());
- 
-                 try {
--                    PlayerAdvancements.GSON.toJson(jsonelement, outputstreamwriter);
-+                    outputstreamwriter.write(event.getJsonData()); // Paper
-                 } catch (Throwable throwable) {
-                     try {
-                         outputstreamwriter.close();
-@@ -266,7 +281,7 @@ public class PlayerAdvancements {
- 
-             fileoutputstream.close();
+                 PlayerAdvancements.GSON.toJson(jsonelement, bufferedwriter);
+@@ -218,7 +237,7 @@ public class PlayerAdvancements {
+                 bufferedwriter.close();
+             }
          } catch (IOException ioexception) {
--            PlayerAdvancements.LOGGER.error("Couldn't save player advancements to {}", this.file, ioexception);
-+            PlayerAdvancements.LOGGER.error("Couldn't save player advancements to {}", event.getPath(), ioexception);
+-            PlayerAdvancements.LOGGER.error("Couldn't save player advancements to {}", this.playerSavePath, ioexception);
++            PlayerAdvancements.LOGGER.error("Couldn't save player advancements to {}", event.getPath().toPath(), ioexception);
          }
  
      }

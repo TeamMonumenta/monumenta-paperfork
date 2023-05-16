@@ -5,10 +5,10 @@ Subject: [PATCH] Monumenta - Fix shulker NoAI allowing peeking
 
 
 diff --git a/src/main/java/net/minecraft/world/entity/monster/Shulker.java b/src/main/java/net/minecraft/world/entity/monster/Shulker.java
-index 9dedb3599d5388c1bcc34558e8e5cb4a8668646f..497722c5f3e9cdeded6b18e391316753b0581a58 100644
+index 8cb910da17d75a9d9c7dbeb3c9e24b6de657a2f7..542babb33b9f79d15bd63d2c364f59b239e59c26 100644
 --- a/src/main/java/net/minecraft/world/entity/monster/Shulker.java
 +++ b/src/main/java/net/minecraft/world/entity/monster/Shulker.java
-@@ -83,6 +83,8 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
+@@ -87,6 +87,8 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
      });
      private float currentPeekAmountO;
      private float currentPeekAmount;
@@ -17,7 +17,7 @@ index 9dedb3599d5388c1bcc34558e8e5cb4a8668646f..497722c5f3e9cdeded6b18e391316753
      @Nullable
      private BlockPos clientOldAttachPosition;
      private int clientSideTeleportInterpolation;
-@@ -90,6 +92,8 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
+@@ -94,6 +96,8 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
  
      public Shulker(EntityType<? extends Shulker> type, Level world) {
          super(type, world);
@@ -26,7 +26,7 @@ index 9dedb3599d5388c1bcc34558e8e5cb4a8668646f..497722c5f3e9cdeded6b18e391316753
          this.xpReward = 5;
          this.lookControl = new Shulker.ShulkerLookControl(this);
      }
-@@ -177,7 +181,7 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
+@@ -181,7 +185,7 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
      @Override
      public void tick() {
          super.tick();
@@ -35,7 +35,7 @@ index 9dedb3599d5388c1bcc34558e8e5cb4a8668646f..497722c5f3e9cdeded6b18e391316753
              this.findNewAttachment();
          }
  
-@@ -237,6 +241,10 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
+@@ -241,6 +245,10 @@ public class Shulker extends AbstractGolem implements VariantHolder<Optional<Dye
      }
  
      private void onPeekAmountChange() {
