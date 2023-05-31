@@ -30,7 +30,7 @@ index a9adb3ae346e9bb2ca335a6688163eb5d7a27e6d..4ad95395d7c4cccb7c97ac156d3f92c9
          this.functionLibrary = new ServerFunctionLibrary(functionPermissionLevel, this.commands.getDispatcher());
      }
 diff --git a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
-index ec8684ba62b73b54b1962d3332781e9ec0b7fad2..f62f2ccbccbfcea4273488c206d126b6e1aea7ed 100644
+index 975422a57b83a31e63a600bb4ff9c4e2baaf6da7..36bb22b1c9ff56c18fde8a4dc61e1531d533c6b9 100644
 --- a/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
 +++ b/src/main/java/net/minecraft/server/ServerFunctionLibrary.java
 @@ -39,6 +39,7 @@ public class ServerFunctionLibrary implements PreparableReloadListener {
