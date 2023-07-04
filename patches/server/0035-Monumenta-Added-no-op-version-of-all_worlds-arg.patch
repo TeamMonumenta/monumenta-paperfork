@@ -1,0 +1,58 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Mon, 3 Jul 2023 19:24:17 -0400
+Subject: [PATCH] Monumenta - Added no-op version of all_worlds arg
+
+
+diff --git a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
+index 67f469a2a10621badb8c4161218425242602ccd8..4bd80529aa88373bebb419e1e2abc70dc2e0bb3e 100644
+--- a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
++++ b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
+@@ -75,7 +75,8 @@ public class EntitySelectorParser {
+     private final boolean allowSelectors;
+     private int maxResults;
+     private boolean includesEntities;
+-    private boolean worldLimited;
++    public boolean worldLimited = false; // Monumenta
++    public boolean worldLimitedSet = false; // Monumenta
+     private MinMaxBounds.Doubles distance;
+     private MinMaxBounds.Ints level;
+     @Nullable
+diff --git a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+index f0bc168393ba87310d3c43b236b024c46b66ba39..e6be6265d232633585fe4dfd4f35470538754a2b 100644
+--- a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
++++ b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+@@ -122,6 +122,33 @@ public class EntitySelectorOptions {
+             }, (reader) -> {
+                 return reader.getDistance().isAny();
+             }, new TranslatableComponent("argument.entity.options.distance.description"));
++            // Monumenta start - use "sort" as a template
++            register("all_worlds", (reader) -> {
++                int i = reader.getReader().getCursor();
++                String string = reader.getReader().readUnquotedString();
++                reader.setSuggestions((builder, consumer) -> {
++                    return SharedSuggestionProvider.suggest(Arrays.asList("true", "false"), builder);
++                });
++                BiConsumer<Vec3, List<? extends Entity>> biConsumer;
++                switch (string) {
++                    case "true":
++                        //reader.worldLimited = false; // Monumenta - disabled until all commands updated
++                        reader.worldLimitedSet = true;
++                        break;
++                    case "false":
++                        reader.worldLimitedSet = true;
++                        break;
++                    default:
++                        reader.getReader().setCursor(i);
++                        throw ERROR_UNKNOWN_OPTION.createWithContext(reader.getReader(), string);
++                }
++
++                reader.setOrder(biConsumer);
++                reader.setSorted(true);
++            }, (reader) -> {
++                return !reader.worldLimitedSet;
++            }, new net.minecraft.network.chat.TextComponent("Select entities in all worlds"));
++            // Monumenta end
+             register("level", (reader) -> {
+                 int i = reader.getReader().getCursor();
+                 MinMaxBounds.Ints ints = MinMaxBounds.Ints.fromReader(reader.getReader());
