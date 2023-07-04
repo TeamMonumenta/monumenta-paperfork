@@ -19,10 +19,10 @@ index 67f469a2a10621badb8c4161218425242602ccd8..4bd80529aa88373bebb419e1e2abc70d
      private MinMaxBounds.Ints level;
      @Nullable
 diff --git a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
-index f0bc168393ba87310d3c43b236b024c46b66ba39..e6be6265d232633585fe4dfd4f35470538754a2b 100644
+index f0bc168393ba87310d3c43b236b024c46b66ba39..6fcb3f5763babc3b21048aa120129563c289fc01 100644
 --- a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
 +++ b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
-@@ -122,6 +122,33 @@ public class EntitySelectorOptions {
+@@ -122,6 +122,28 @@ public class EntitySelectorOptions {
              }, (reader) -> {
                  return reader.getDistance().isAny();
              }, new TranslatableComponent("argument.entity.options.distance.description"));
@@ -33,22 +33,17 @@ index f0bc168393ba87310d3c43b236b024c46b66ba39..e6be6265d232633585fe4dfd4f354705
 +                reader.setSuggestions((builder, consumer) -> {
 +                    return SharedSuggestionProvider.suggest(Arrays.asList("true", "false"), builder);
 +                });
-+                BiConsumer<Vec3, List<? extends Entity>> biConsumer;
 +                switch (string) {
 +                    case "true":
 +                        //reader.worldLimited = false; // Monumenta - disabled until all commands updated
-+                        reader.worldLimitedSet = true;
 +                        break;
 +                    case "false":
-+                        reader.worldLimitedSet = true;
 +                        break;
 +                    default:
 +                        reader.getReader().setCursor(i);
 +                        throw ERROR_UNKNOWN_OPTION.createWithContext(reader.getReader(), string);
 +                }
-+
-+                reader.setOrder(biConsumer);
-+                reader.setSorted(true);
++                reader.worldLimitedSet = true;
 +            }, (reader) -> {
 +                return !reader.worldLimitedSet;
 +            }, new net.minecraft.network.chat.TextComponent("Select entities in all worlds"));
