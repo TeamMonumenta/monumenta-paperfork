@@ -1,0 +1,99 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Mon, 3 Jul 2023 19:24:17 -0400
+Subject: [PATCH] Monumenta - Added all_worlds selector argument
+
+
+diff --git a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
+index 67f469a2a10621badb8c4161218425242602ccd8..4bd80529aa88373bebb419e1e2abc70dc2e0bb3e 100644
+--- a/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
++++ b/src/main/java/net/minecraft/commands/arguments/selector/EntitySelectorParser.java
+@@ -75,7 +75,8 @@ public class EntitySelectorParser {
+     private final boolean allowSelectors;
+     private int maxResults;
+     private boolean includesEntities;
+-    private boolean worldLimited;
++    public boolean worldLimited = false; // Monumenta
++    public boolean worldLimitedSet = false; // Monumenta
+     private MinMaxBounds.Doubles distance;
+     private MinMaxBounds.Ints level;
+     @Nullable
+diff --git a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+index f0bc168393ba87310d3c43b236b024c46b66ba39..ce808dedb1094cd957a49d19a735051784b26d4b 100644
+--- a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
++++ b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+@@ -114,7 +114,6 @@ public class EntitySelectorOptions {
+                 MinMaxBounds.Doubles doubles = MinMaxBounds.Doubles.fromReader(reader.getReader());
+                 if ((doubles.getMin() == null || !(doubles.getMin() < 0.0D)) && (doubles.getMax() == null || !(doubles.getMax() < 0.0D))) {
+                     reader.setDistance(doubles);
+-                    reader.setWorldLimited();
+                 } else {
+                     reader.getReader().setCursor(i);
+                     throw ERROR_RANGE_NEGATIVE.createWithContext(reader.getReader());
+@@ -122,6 +121,28 @@ public class EntitySelectorOptions {
+             }, (reader) -> {
+                 return reader.getDistance().isAny();
+             }, new TranslatableComponent("argument.entity.options.distance.description"));
++            // Monumenta start - use "sort" as a template
++            register("all_worlds", (reader) -> {
++                int i = reader.getReader().getCursor();
++                String string = reader.getReader().readUnquotedString();
++                reader.setSuggestions((builder, consumer) -> {
++                    return SharedSuggestionProvider.suggest(Arrays.asList("true", "false"), builder);
++                });
++                switch (string) {
++                    case "true":
++                        reader.worldLimited = false;
++                        break;
++                    case "false":
++                        break;
++                    default:
++                        reader.getReader().setCursor(i);
++                        throw ERROR_UNKNOWN_OPTION.createWithContext(reader.getReader(), string);
++                }
++                reader.worldLimitedSet = true;
++            }, (reader) -> {
++                return !reader.worldLimitedSet;
++            }, new net.minecraft.network.chat.TextComponent("Select entities in all worlds"));
++            // Monumenta end
+             register("level", (reader) -> {
+                 int i = reader.getReader().getCursor();
+                 MinMaxBounds.Ints ints = MinMaxBounds.Ints.fromReader(reader.getReader());
+@@ -136,37 +157,31 @@ public class EntitySelectorOptions {
+                 return reader.getLevel().isAny();
+             }, new TranslatableComponent("argument.entity.options.level.description"));
+             register("x", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setX(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getX() == null;
+             }, new TranslatableComponent("argument.entity.options.x.description"));
+             register("y", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setY(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getY() == null;
+             }, new TranslatableComponent("argument.entity.options.y.description"));
+             register("z", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setZ(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getZ() == null;
+             }, new TranslatableComponent("argument.entity.options.z.description"));
+             register("dx", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setDeltaX(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getDeltaX() == null;
+             }, new TranslatableComponent("argument.entity.options.dx.description"));
+             register("dy", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setDeltaY(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getDeltaY() == null;
+             }, new TranslatableComponent("argument.entity.options.dy.description"));
+             register("dz", (reader) -> {
+-                reader.setWorldLimited();
+                 reader.setDeltaZ(reader.getReader().readDouble());
+             }, (reader) -> {
+                 return reader.getDeltaZ() == null;
