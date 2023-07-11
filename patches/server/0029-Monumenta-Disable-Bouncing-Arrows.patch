@@ -4,6 +4,19 @@ Date: Sat, 26 Nov 2022 15:37:35 +1100
 Subject: [PATCH] Monumenta - Disable Bouncing Arrows
 
 
+diff --git a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+index 9f38be753a12ae9c1339a402951b48ad0e770aaf..8301a1dfea7c7e2b4613b14dd1169387ceb65020 100644
+--- a/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
++++ b/src/main/java/net/minecraft/commands/arguments/selector/options/EntitySelectorOptions.java
+@@ -139,7 +139,7 @@ public class EntitySelectorOptions {
+                 reader.worldLimitedSet = true;
+             }, (reader) -> {
+                 return !reader.isCurrentEntity() && !reader.isSorted();
+-            }, new Component.literal("Select entities in all worlds"));
++            }, Component.literal("Select entities in all worlds"));
+             // Monumenta end
+             register("level", (reader) -> {
+                 int i = reader.getReader().getCursor();
 diff --git a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java b/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
 index 5d6d26cfe8f0ab68a3145214b3fc126ca7a71a66..fd2e16cb55980731122c43eb14124e90ac1a0a8f 100644
 --- a/src/main/java/net/minecraft/world/entity/projectile/AbstractArrow.java
