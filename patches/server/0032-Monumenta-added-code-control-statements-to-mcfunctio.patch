@@ -35,7 +35,7 @@ index b64c98c173e25055f4ff9d7124d0a3cb7ff6ab1d..9644b86c93715e70fe1da5a52733639a
                  }
              }
 diff --git a/src/main/java/net/minecraft/commands/CommandFunction.java b/src/main/java/net/minecraft/commands/CommandFunction.java
-index a89e2865f8db2fd13bb37c19f3abf8f772ff90ef..31f4da90ebe923dff41b7e01c5e8bbf9bc97d4ef 100644
+index b94038e2da0f986403c1ec9b27384344e2bb22f0..ff3d090b749ef08af2124a46803e67dbddb50844 100644
 --- a/src/main/java/net/minecraft/commands/CommandFunction.java
 +++ b/src/main/java/net/minecraft/commands/CommandFunction.java
 @@ -45,6 +45,30 @@ public class CommandFunction {
@@ -204,7 +204,7 @@ index 0000000000000000000000000000000000000000..4e67f07caed77ad13058a363ed8f9953
 +
 +}
 diff --git a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
-index c2302b2a9007da01a821c26bc29b7c6db5662247..5cc9010fbb9a30ead8cb363ca2c8c9d993d1f83b 100644
+index 9e0a39c447c34e9db96b465122a5a7f19ca682b0..0b329eff60374de47196112161d30078db2bd558 100644
 --- a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 +++ b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypes.java
 @@ -130,7 +130,7 @@ public class ArgumentTypes {
@@ -322,7 +322,7 @@ index 48205eb72c63fc22042ba4eef8bd1cf85ef61f8a..19dcbae0e43d88765ce8a26c00946416
                  }
 diff --git a/src/main/java/net/minecraft/server/commands/BreakCommand.java b/src/main/java/net/minecraft/server/commands/BreakCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..130dd3988a0d6356211859e538e6fcb107481227
+index 0000000000000000000000000000000000000000..ecd60499ae1afbde0d83624f6c558a3ec72bb658
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/commands/BreakCommand.java
 @@ -0,0 +1,27 @@
@@ -355,7 +355,7 @@ index 0000000000000000000000000000000000000000..130dd3988a0d6356211859e538e6fcb1
 +}
 diff --git a/src/main/java/net/minecraft/server/commands/ContinueCommand.java b/src/main/java/net/minecraft/server/commands/ContinueCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..1733f9f6ca9f46c3cda4361519eefa75cd0f4699
+index 0000000000000000000000000000000000000000..5362c300158a04fb13485b34dc477ad9357997a0
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/commands/ContinueCommand.java
 @@ -0,0 +1,27 @@
@@ -387,7 +387,7 @@ index 0000000000000000000000000000000000000000..1733f9f6ca9f46c3cda4361519eefa75
 +
 +}
 diff --git a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
-index 818596eda9488b98f7b80c6e9d81ccbf6512f488..643fe90b40463a75a1290a1f3649e40fe5f6ecd0 100644
+index bde3a290c9136cca3f069063c5200bfdd05584cd..5a7cbf3dbf5054b6147a38aa9b352f0c937f980c 100644
 --- a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
 +++ b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
 @@ -232,7 +232,7 @@ public class ExecuteCommand {
@@ -401,7 +401,7 @@ index 818596eda9488b98f7b80c6e9d81ccbf6512f488..643fe90b40463a75a1290a1f3649e40f
          })))).then(Commands.literal("score").then(Commands.argument("target", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(Commands.argument("targetObjective", ObjectiveArgument.objective()).then(Commands.literal("=").then(Commands.argument("source", ScoreHolderArgument.scoreHolder()).suggests(ScoreHolderArgument.SUGGEST_SCORE_HOLDERS).then(addConditional(root, Commands.argument("sourceObjective", ObjectiveArgument.objective()), positive, (context) -> {
 diff --git a/src/main/java/net/minecraft/server/commands/LoopCommand.java b/src/main/java/net/minecraft/server/commands/LoopCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..eb4d1b17597b243d43933e8a587feac2336bb331
+index 0000000000000000000000000000000000000000..3459f3bbe25aabbfa316f3486f7f0cd4bf4536b6
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/commands/LoopCommand.java
 @@ -0,0 +1,107 @@
@@ -514,7 +514,7 @@ index 0000000000000000000000000000000000000000..eb4d1b17597b243d43933e8a587feac2
 +}
 diff --git a/src/main/java/net/minecraft/server/commands/ReturnCommand.java b/src/main/java/net/minecraft/server/commands/ReturnCommand.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..47b111ee6e57dd934dab1a84dff6836157785e48
+index 0000000000000000000000000000000000000000..16489fe7a35aaf5b3513426d341705460ab7ad04
 --- /dev/null
 +++ b/src/main/java/net/minecraft/server/commands/ReturnCommand.java
 @@ -0,0 +1,22 @@

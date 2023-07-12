@@ -5,7 +5,7 @@ Subject: [PATCH] Monumenta - Improved score lookup performance
 
 
 diff --git a/src/main/java/net/minecraft/world/scores/Scoreboard.java b/src/main/java/net/minecraft/world/scores/Scoreboard.java
-index 8a20f083ed90492762f212358661b1ef9ae55413..54a271d6119aa3d367a7c9d9caa18f0481c3e4fa 100644
+index 2955c414d80b9abcd1ee195135ede2b7539b20bb..2986aeb66a1182f70b28df2049ac5d8203b1ad8d 100644
 --- a/src/main/java/net/minecraft/world/scores/Scoreboard.java
 +++ b/src/main/java/net/minecraft/world/scores/Scoreboard.java
 @@ -115,6 +115,10 @@ public class Scoreboard {
