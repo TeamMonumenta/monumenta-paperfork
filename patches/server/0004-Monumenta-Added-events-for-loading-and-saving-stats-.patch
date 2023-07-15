@@ -1,0 +1,125 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Mon, 1 May 2023 06:46:45 -0400
+Subject: [PATCH] Monumenta - Add events for loading and saving stats data
+
+
+diff --git a/src/main/java/net/minecraft/server/players/PlayerList.java b/src/main/java/net/minecraft/server/players/PlayerList.java
+index 624946f48f0811c94d05174f28d0b1fc6d5e6a00..e4f86db9da2d0ef23cd533ab87862437e53b921b 100644
+--- a/src/main/java/net/minecraft/server/players/PlayerList.java
++++ b/src/main/java/net/minecraft/server/players/PlayerList.java
+@@ -92,6 +92,7 @@ import net.minecraft.world.scores.Objective;
+ import net.minecraft.world.scores.PlayerTeam;
+ import net.minecraft.world.scores.Scoreboard; // Paper
+ import net.minecraft.world.scores.Team;
++import org.bukkit.OfflinePlayer;
+ import org.slf4j.Logger;
+ 
+ // CraftBukkit start
+@@ -1414,10 +1415,10 @@ public abstract class PlayerList {
+     // CraftBukkit start
+     public ServerStatsCounter getPlayerStats(ServerPlayer entityhuman) {
+         ServerStatsCounter serverstatisticmanager = entityhuman.getStats();
+-        return serverstatisticmanager == null ? this.getPlayerStats(entityhuman.getUUID(), entityhuman.getGameProfile().getName()) : serverstatisticmanager; // Paper - use username and not display name
++        return serverstatisticmanager == null ? this.getPlayerStats(entityhuman.getBukkitEntity(), entityhuman.getUUID(), entityhuman.getGameProfile().getName()) : serverstatisticmanager; // Paper - use username and not display name
+     }
+ 
+-    public ServerStatsCounter getPlayerStats(UUID uuid, String displayName) {
++    public ServerStatsCounter getPlayerStats(OfflinePlayer offlinePlayer, UUID uuid, String displayName) {
+         ServerPlayer entityhuman = this.getPlayer(uuid);
+         ServerStatsCounter serverstatisticmanager = entityhuman == null ? null : (ServerStatsCounter) entityhuman.getStats();
+         // CraftBukkit end
+@@ -1435,7 +1436,7 @@ public abstract class PlayerList {
+                 }
+             }
+ 
+-            serverstatisticmanager = new ServerStatsCounter(this.server, file1);
++            serverstatisticmanager = new ServerStatsCounter(offlinePlayer, this.server, file1);
+             // this.stats.put(uuid, serverstatisticmanager); // CraftBukkit
+         }
+ 
+diff --git a/src/main/java/net/minecraft/stats/ServerStatsCounter.java b/src/main/java/net/minecraft/stats/ServerStatsCounter.java
+index c59f98ca3adfdd90cdc5999aeadbb0834efedc0f..db2b3e75828d0f1a847a3693ec30f004d3e81d8b 100644
+--- a/src/main/java/net/minecraft/stats/ServerStatsCounter.java
++++ b/src/main/java/net/minecraft/stats/ServerStatsCounter.java
+@@ -35,6 +35,7 @@ import net.minecraft.server.level.ServerPlayer;
+ import net.minecraft.util.datafix.DataFixTypes;
+ import net.minecraft.world.entity.player.Player;
+ import org.apache.commons.io.FileUtils;
++import org.bukkit.OfflinePlayer;
+ import org.slf4j.Logger;
+ 
+ public class ServerStatsCounter extends StatsCounter {
+@@ -43,8 +44,12 @@ public class ServerStatsCounter extends StatsCounter {
+     private final MinecraftServer server;
+     private final File file;
+     private final Set<Stat<?>> dirty = Sets.newHashSet();
++    private OfflinePlayer player; // Paper
+ 
+-    public ServerStatsCounter(MinecraftServer server, File file) {
++    // Paper start
++    public ServerStatsCounter(OfflinePlayer offlinePlayer, MinecraftServer server, File file) {
++        this.player = offlinePlayer;
++        // Paper end
+         this.server = server;
+         this.file = file;
+         // Spigot start
+@@ -54,13 +59,20 @@ public class ServerStatsCounter extends StatsCounter {
+             this.stats.put( wrapper, entry.getValue().intValue() );
+         }
+         // Spigot end
+-        if (file.isFile()) {
++        // Paper Start
++        com.destroystokyo.paper.event.player.ServerStatsDataLoadEvent event = new com.destroystokyo.paper.event.player.ServerStatsDataLoadEvent(this.player, this.file);
++        event.callEvent();
++        if (event.getPath().isFile() || event.getJsonData() != null) {
+             try {
+-                this.parseLocal(server.getFixerUpper(), FileUtils.readFileToString(file));
++                if (event.getJsonData() != null) {
++                    this.parseLocal(server.getFixerUpper(), event.getJsonData());
++                } else {
++                    this.parseLocal(server.getFixerUpper(), FileUtils.readFileToString(event.getPath()));
++                }
+             } catch (IOException ioexception) {
+-                ServerStatsCounter.LOGGER.error("Couldn't read statistics file {}", file, ioexception);
++                ServerStatsCounter.LOGGER.error("Couldn't read statistics file {}", event.getPath(), ioexception);
+             } catch (JsonParseException jsonparseexception) {
+-                ServerStatsCounter.LOGGER.error("Couldn't parse statistics file {}", file, jsonparseexception);
++                ServerStatsCounter.LOGGER.error("Couldn't parse statistics file {}", event.getPath(), jsonparseexception);
+             }
+         }
+ 
+@@ -68,8 +80,19 @@ public class ServerStatsCounter extends StatsCounter {
+ 
+     public void save() {
+         if ( org.spigotmc.SpigotConfig.disableStatSaving ) return; // Spigot
++        // Paper start
++        com.destroystokyo.paper.event.player.ServerStatsDataSaveEvent event = new com.destroystokyo.paper.event.player.ServerStatsDataSaveEvent(this.player, this.file, this.toJson());
++        if (!event.callEvent()) {
++            return;
++        }
++        if (event.getPath().getParentFile() != null) {
++            if (!event.getPath().getParentFile().mkdirs()) {
++                ServerStatsCounter.LOGGER.error("Couldn't save stats: failed to create parent directory");
++            }
++        }
++        // Paper end
+         try {
+-            FileUtils.writeStringToFile(this.file, this.toJson());
++            FileUtils.writeStringToFile(event.getPath(), event.getJsonData()); // Paper
+         } catch (IOException ioexception) {
+             ServerStatsCounter.LOGGER.error("Couldn't save stats", ioexception);
+         }
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
+index 50927403d07954f3b930b39046866899a1b289e6..583e8e70957cb43c3565eb8a9db01674c390a4ee 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftOfflinePlayer.java
+@@ -344,7 +344,7 @@ public class CraftOfflinePlayer implements OfflinePlayer, ConfigurationSerializa
+     }
+ 
+     private ServerStatsCounter getStatisticManager() {
+-        return this.server.getHandle().getPlayerStats(this.getUniqueId(), this.getName());
++        return this.server.getHandle().getPlayerStats(this, this.getUniqueId(), this.getName());
+     }
+ 
+     @Override

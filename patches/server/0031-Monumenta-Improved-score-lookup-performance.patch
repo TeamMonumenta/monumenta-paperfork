@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Peter=20G=C3=BCttinger?= <njol@gmx.ch>
+Date: Wed, 7 Sep 2022 08:44:28 +0200
+Subject: [PATCH] Monumenta - Improved score lookup performance
+
+
+diff --git a/src/main/java/net/minecraft/world/scores/Scoreboard.java b/src/main/java/net/minecraft/world/scores/Scoreboard.java
+index 8a20f083ed90492762f212358661b1ef9ae55413..54a271d6119aa3d367a7c9d9caa18f0481c3e4fa 100644
+--- a/src/main/java/net/minecraft/world/scores/Scoreboard.java
++++ b/src/main/java/net/minecraft/world/scores/Scoreboard.java
+@@ -115,6 +115,10 @@ public class Scoreboard {
+         return Lists.newArrayList(this.playerScores.keySet());
+     }
+ 
++    public boolean hasPlayer(String player) {
++        return this.playerScores.containsKey(player);
++    }
++
+     public void resetPlayerScore(String playerName, @Nullable Objective objective) {
+         if (objective == null) {
+             Map<Objective, Score> map = this.playerScores.remove(playerName);
+diff --git a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
+index 3b26793b67282c3a20c023b9c13a2a9b54d5d932..92d6a92d3fe0c69fefe2315fb0b99d6a938d9192 100644
+--- a/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
++++ b/src/main/java/org/bukkit/craftbukkit/scoreboard/CraftScore.java
+@@ -41,7 +41,7 @@ final class CraftScore implements Score {
+     public int getScore() throws IllegalStateException {
+         Scoreboard board = this.objective.checkState().board;
+ 
+-        if (board.getTrackedPlayers().contains(entry)) { // Lazy
++        if (board.hasPlayer(entry)) { // Lazy
+             Map<net.minecraft.world.scores.Objective, net.minecraft.world.scores.Score> scores = board.getPlayerScores(entry);
+             net.minecraft.world.scores.Score score = scores.get(this.objective.getHandle());
+             if (score != null) { // Lazy
+@@ -61,7 +61,7 @@ final class CraftScore implements Score {
+     public boolean isScoreSet() throws IllegalStateException {
+         Scoreboard board = this.objective.checkState().board;
+ 
+-        return board.getTrackedPlayers().contains(entry) && board.getPlayerScores(entry).containsKey(this.objective.getHandle());
++        return board.hasPlayer(entry) && board.getPlayerScores(entry).containsKey(this.objective.getHandle());
+     }
+ 
+     @Override

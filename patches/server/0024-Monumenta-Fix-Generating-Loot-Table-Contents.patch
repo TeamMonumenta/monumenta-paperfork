@@ -1,0 +1,34 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Wed, 25 May 2022 12:44:41 +1000
+Subject: [PATCH] Monumenta - Fix Generating Loot Table Contents
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
+index 74c2f3b63f98fe04398934f1d039042e47bbb93b..3384b7f831b5ab001043c9972657d81f99bde169 100644
+--- a/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
++++ b/src/main/java/org/bukkit/craftbukkit/CraftLootTable.java
+@@ -79,7 +79,7 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
+         }
+         this.setMaybe(builder, LootContextParams.ORIGIN, new Vec3(loc.getX(), loc.getY(), loc.getZ()));
+         if (this.getHandle() != LootTable.EMPTY) {
+-            // builder.luck(context.getLuck());
++            builder.withLuck(context.getLuck());
+ 
+             if (context.getLootedEntity() != null) {
+                 Entity nmsLootedEntity = ((CraftEntity) context.getLootedEntity()).getHandle();
+@@ -106,12 +106,10 @@ public class CraftLootTable implements org.bukkit.loot.LootTable {
+         // SPIGOT-5603 - Avoid IllegalArgumentException in LootTableInfo#build()
+         LootContextParamSet.Builder nmsBuilder = new LootContextParamSet.Builder();
+         for (LootContextParam<?> param : this.getHandle().getParamSet().getRequired()) {
+-            nmsBuilder.required(param);
++            nmsBuilder.optional(param); // Monumenta
+         }
+         for (LootContextParam<?> param : this.getHandle().getParamSet().getAllowed()) {
+-            if (!this.getHandle().getParamSet().getRequired().contains(param)) {
+-                nmsBuilder.optional(param);
+-            }
++            nmsBuilder.optional(param); // Monumenta
+         }
+         nmsBuilder.optional(LootContextParams.LOOTING_MOD);
+ 

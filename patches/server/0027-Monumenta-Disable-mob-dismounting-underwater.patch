@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Ong <ongjiaming2001@gmail.com>
+Date: Mon, 20 Jun 2022 21:30:32 +1000
+Subject: [PATCH] Monumenta - Disable mob dismounting underwater
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/LivingEntity.java b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+index 72227fcd6e8bfd22048b5b8f307757b5c2070f41..92bdbf241af5e617ad44395e07abce678fa8d951 100644
+--- a/src/main/java/net/minecraft/world/entity/LivingEntity.java
++++ b/src/main/java/net/minecraft/world/entity/LivingEntity.java
+@@ -432,9 +432,10 @@ public abstract class LivingEntity extends Entity {
+                     }
+                 }
+ 
++                /* MONUMENTA - Stop mobs from leaving "vehicle" when underwater.
+                 if (!this.level.isClientSide && this.isPassenger() && this.getVehicle() != null && !this.getVehicle().rideableUnderWater()) {
+                     this.stopRiding();
+-                }
++                } */
+             } else if (this.getAirSupply() < this.getMaxAirSupply()) {
+                 this.setAirSupply(this.increaseAirSupply(this.getAirSupply()));
+             }
