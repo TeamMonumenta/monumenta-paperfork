@@ -25,10 +25,10 @@ index 23f7a2e69a64b8772d432b3f37cddc376c6f5cec..2bf67659e4701c65d741ebdd4ac1b5fa
  
      private void tellNeutralMobsThatIDied() {
 diff --git a/src/main/java/net/minecraft/world/entity/Entity.java b/src/main/java/net/minecraft/world/entity/Entity.java
-index df316ca580a0a3b4ba6b658f7d7bdf542f4ad85b..4317de12fa47075fc9bb37337cd77da4cbc0b2c5 100644
+index 280ee1838106201f5e3ba7753caced6d030f7e55..2a83c11c059e9f2828f5da49b5f60590edc7e448 100644
 --- a/src/main/java/net/minecraft/world/entity/Entity.java
 +++ b/src/main/java/net/minecraft/world/entity/Entity.java
-@@ -394,6 +394,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -395,6 +395,8 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
      public boolean fromNetherPortal; // Paper
      protected int numCollisions = 0; // Paper
      public boolean spawnedViaMobSpawner; // Paper - Yes this name is similar to above, upstream took the better one
@@ -37,7 +37,7 @@ index df316ca580a0a3b4ba6b658f7d7bdf542f4ad85b..4317de12fa47075fc9bb37337cd77da4
      @javax.annotation.Nullable
      private org.bukkit.util.Vector origin;
      @javax.annotation.Nullable
-@@ -675,6 +677,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
+@@ -676,6 +678,33 @@ public abstract class Entity implements Nameable, EntityAccess, CommandSource {
          return this.id;
      }
  
