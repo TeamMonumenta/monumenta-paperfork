@@ -35,7 +35,7 @@ index b64c98c173e25055f4ff9d7124d0a3cb7ff6ab1d..9644b86c93715e70fe1da5a52733639a
                  }
              }
 diff --git a/src/main/java/net/minecraft/commands/CommandFunction.java b/src/main/java/net/minecraft/commands/CommandFunction.java
-index 8273ee1c5e513f02c9743ee38c9b7cf700e2ecad..ccaf6224b3ad5650e4712f14a249eb464c8b42d5 100644
+index c0a0da39507c201a7164bcd2b3a41e6b4ccd96a2..5deffc5e8d4c0fee030a0442bcdafa4186c8c3fd 100644
 --- a/src/main/java/net/minecraft/commands/CommandFunction.java
 +++ b/src/main/java/net/minecraft/commands/CommandFunction.java
 @@ -45,6 +45,30 @@ public class CommandFunction {
@@ -204,7 +204,7 @@ index 0000000000000000000000000000000000000000..91fdce881353e98faa4df8374a8a6eee
 +
 +}
 diff --git a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypeInfos.java b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypeInfos.java
-index 7dd1c710267db2b299442ca4be33046328d18091..1085b28085ac16b27d66191441000e0d695f6f82 100644
+index 889d1121a5558c7228e368b6fcb893b95ae4e716..d820c8475b8fbab9d648d6d4c73f2fccb6239fa1 100644
 --- a/src/main/java/net/minecraft/commands/synchronization/ArgumentTypeInfos.java
 +++ b/src/main/java/net/minecraft/commands/synchronization/ArgumentTypeInfos.java
 @@ -112,10 +112,10 @@ public class ArgumentTypeInfos {
@@ -235,9 +235,9 @@ index 7dd1c710267db2b299442ca4be33046328d18091..1085b28085ac16b27d66191441000e0d
      public static <A extends ArgumentType<?>> ArgumentTypeInfo<A, ?> byClass(A argumentType) {
          ArgumentTypeInfo<?, ?> argumentTypeInfo = BY_CLASS.get(argumentType.getClass());
          if (argumentTypeInfo == null) {
-+            // Monumenta: replace CodeBlockArgument with GreedyString when sending to the client since client doesn't know about this argument
++            // Monumenta: replace CodeBlockArgument with StringArgument when sending to the client since client doesn't know about this argument
 +            if (argumentType instanceof net.minecraft.commands.arguments.CodeBlockArgument) {
-+                return (ArgumentTypeInfo<A, ?>)SingletonArgumentInfo.contextFree(StringArgumentType::greedyString);
++                return (ArgumentTypeInfo<A, ?>) BY_CLASS.get(StringArgumentType.class);
 +            }
              throw new IllegalArgumentException(String.format(Locale.ROOT, "Unrecognized argument type %s (%s)", argumentType, argumentType.getClass()));
          } else {
@@ -387,7 +387,7 @@ index 0000000000000000000000000000000000000000..5362c300158a04fb13485b34dc477ad9
 +
 +}
 diff --git a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
-index 56497ea7112c26f2821d0eafeb3865379ac534be..067ff74a865c7ee57c0f35cfab924fa2e43cc97c 100644
+index 52771a8bb782809e4cee027ce6afa4044d3ef5ea..f37cc2ccfc45efe48dd2a06e2af58ed4f344f5f3 100644
 --- a/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
 +++ b/src/main/java/net/minecraft/server/commands/ExecuteCommand.java
 @@ -276,7 +276,7 @@ public class ExecuteCommand {
