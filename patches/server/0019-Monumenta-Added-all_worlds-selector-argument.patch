@@ -13,7 +13,7 @@ index 92d1eccf0c07e7b4b6368a403543f07acabf14e0..4843c67cb368cef383d860b61e274e32
      private int maxResults;
      private boolean includesEntities;
 -    private boolean worldLimited;
-+    public boolean worldLimited = false; // Monumenta
++    public boolean worldLimited = true; // Monumenta
 +    public boolean worldLimitedSet = false; // Monumenta
      private MinMaxBounds.Doubles distance;
      private MinMaxBounds.Ints level;
