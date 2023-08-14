@@ -9,6 +9,76 @@ Subject: [PATCH] Monumenta - Block behavior changes
 
 Signed-off-by: Byron Marohn <combustible@live.com>
 
+diff --git a/src/main/java/net/minecraft/world/level/block/BaseCoralPlantTypeBlock.java b/src/main/java/net/minecraft/world/level/block/BaseCoralPlantTypeBlock.java
+index 3d2b34c5a7c9b00c1164b4f89c2cbff81fc460eb..5cebb1a4e6df863d579d37de90ed70d6432dc7f2 100644
+--- a/src/main/java/net/minecraft/world/level/block/BaseCoralPlantTypeBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/BaseCoralPlantTypeBlock.java
+@@ -35,17 +35,7 @@ public class BaseCoralPlantTypeBlock extends Block implements SimpleWaterloggedB
+     }
+ 
+     protected static boolean scanForWater(BlockState state, BlockGetter world, BlockPos pos) {
+-        if (state.getValue(WATERLOGGED)) {
+-            return true;
+-        } else {
+-            for(Direction direction : Direction.values()) {
+-                if (world.getFluidState(pos.relative(direction)).is(FluidTags.WATER)) {
+-                    return true;
+-                }
+-            }
+-
+-            return false;
+-        }
++        return true;
+     }
+ 
+     @Nullable
+diff --git a/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java b/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
+index 065525e8ce46c12cdfa1d5d06fb96ea4654e95a3..bbb977fe0c92fc2bdc49d51ff696034b53291a38 100644
+--- a/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/ConcretePowderBlock.java
+@@ -60,7 +60,7 @@ public class ConcretePowderBlock extends FallingBlock {
+     }
+ 
+     private static boolean shouldSolidify(BlockGetter world, BlockPos pos, BlockState state) {
+-        return ConcretePowderBlock.canSolidify(state) || ConcretePowderBlock.touchesLiquid(world, pos);
++        return false;
+     }
+ 
+     private static boolean touchesLiquid(BlockGetter world, BlockPos pos) {
+@@ -87,7 +87,7 @@ public class ConcretePowderBlock extends FallingBlock {
+     }
+ 
+     private static boolean canSolidify(BlockState state) {
+-        return state.getFluidState().is(FluidTags.WATER);
++        return false;
+     }
+ 
+     @Override
+diff --git a/src/main/java/net/minecraft/world/level/block/CoralBlock.java b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
+index 88faea00be60a519f56f975a5311df5e1eb3e6b8..861412932978c0ee584fccf48b8c1820702ce107 100644
+--- a/src/main/java/net/minecraft/world/level/block/CoralBlock.java
++++ b/src/main/java/net/minecraft/world/level/block/CoralBlock.java
+@@ -45,19 +45,7 @@ public class CoralBlock extends Block {
+     }
+ 
+     protected boolean scanForWater(BlockGetter world, BlockPos pos) {
+-        Direction[] aenumdirection = Direction.values();
+-        int i = aenumdirection.length;
+-
+-        for (int j = 0; j < i; ++j) {
+-            Direction enumdirection = aenumdirection[j];
+-            FluidState fluid = world.getFluidState(pos.relative(enumdirection));
+-
+-            if (fluid.is(FluidTags.WATER)) {
+-                return true;
+-            }
+-        }
+-
+-        return false;
++        return true;
+     }
+ 
+     @Nullable
 diff --git a/src/main/java/net/minecraft/world/level/block/IceBlock.java b/src/main/java/net/minecraft/world/level/block/IceBlock.java
 index 5ecf02ce83b7496c977adfeb203b8eadb05f9da5..6fdbc59a8035330bbfa5d83c46797a012fc4ed47 100644
 --- a/src/main/java/net/minecraft/world/level/block/IceBlock.java
