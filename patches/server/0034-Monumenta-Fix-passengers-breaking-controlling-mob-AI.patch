@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Byron Marohn <Combustible@live.com>
+Date: Mon, 4 Sep 2023 16:50:01 -0700
+Subject: [PATCH] Monumenta - Fix passengers breaking/controlling mob AI
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/Mob.java b/src/main/java/net/minecraft/world/entity/Mob.java
+index deaef94ff1e631610c11961b8324e0fa720000ec..54dc3f25530d505402e68a7b3cd7f767cad23443 100644
+--- a/src/main/java/net/minecraft/world/entity/Mob.java
++++ b/src/main/java/net/minecraft/world/entity/Mob.java
+@@ -261,16 +261,7 @@ public abstract class Mob extends LivingEntity implements Targeting {
+     public LivingEntity getControllingPassenger() {
+         Mob entityinsentient;
+ 
+-        if (!this.isNoAi()) {
+-            Entity entity = this.getFirstPassenger();
+-
+-            if (entity instanceof Mob) {
+-                Mob entityinsentient1 = (Mob) entity;
+-
+-                entityinsentient = entityinsentient1;
+-                return entityinsentient;
+-            }
+-        }
++        // Monumenta: Base mob controls AI. Removed passenger control code.
+ 
+         entityinsentient = null;
+         return entityinsentient;
