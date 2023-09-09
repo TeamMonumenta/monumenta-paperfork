@@ -1,0 +1,26 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Fri, 8 Sep 2023 20:00:32 -0400
+Subject: [PATCH] Monumenta - Remove randomness from iron golem attacks
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/animal/IronGolem.java b/src/main/java/net/minecraft/world/entity/animal/IronGolem.java
+index 4fbbd74cda7e4f2c623db46c2c94d9697ca5df05..379ef61075a86d32eb5b11bd173b608c59ef5c45 100644
+--- a/src/main/java/net/minecraft/world/entity/animal/IronGolem.java
++++ b/src/main/java/net/minecraft/world/entity/animal/IronGolem.java
+@@ -192,9 +192,13 @@ public class IronGolem extends AbstractGolem implements NeutralMob {
+     public boolean doHurtTarget(Entity target) {
+         this.attackAnimationTick = 10;
+         this.level.broadcastEntityEvent(this, (byte) 4);
++
++        // Monumenta - remove Iron Golem attack variance
+         float f = this.getAttackDamage();
+-        float f1 = (int) f > 0 ? f / 2.0F + (float) this.random.nextInt((int) f) : f;
+-        boolean flag = target.hurt(this.damageSources().mobAttack(this), f1);
++        // float f1 = (int) f > 0 ? f / 2.0F + (float) this.random.nextInt((int) f) : f;
++        // boolean flag = target.hurt(this.damageSources().mobAttack(this), f1);
++
++        boolean flag = target.hurt(this.damageSources().mobAttack(this), f);
+ 
+         if (flag) {
+             double d0;
