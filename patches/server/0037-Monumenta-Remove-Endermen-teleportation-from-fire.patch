@@ -1,4 +1,4 @@
-Subject: [PATCH] Monumenta - Prevent Enderman teleportation from fire damage
+Subject: [PATCH] Monumenta - Remove Enderman teleportation from fire damage
 ---
 Index: src/main/java/net/minecraft/world/entity/monster/EnderMan.java
 IDEA additional info:
@@ -7,7 +7,7 @@ Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
 ===================================================================
 diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
 --- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java	(revision 7522b76f05a8827f673d76a3322eae63696f3671)
-+++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java	(date 1695927841574)
++++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java	(date 1695944993686)
 @@ -27,6 +27,7 @@
  import net.minecraft.util.TimeUtil;
  import net.minecraft.util.valueproviders.UniformInt;
@@ -21,8 +21,8 @@ diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/sr
              if (!source.is(DamageTypeTags.IS_PROJECTILE) && !flag) {
                  flag1 = super.hurt(source, amount);
 -                if (!this.level.isClientSide() && !(source.getEntity() instanceof LivingEntity) && this.random.nextInt(10) != 0) {
-+                // Monumenta: Endermen should not teleport from fire tick damage
-+                if (!this.level.isClientSide() && !(source.getEntity() instanceof LivingEntity) && !(source.is(DamageTypes.ON_FIRE)) && this.random.nextInt(10) != 0) {
++                // Monumenta: Endermen should not teleport from fire damage
++                if (!this.level.isClientSide() && !(source.getEntity() instanceof LivingEntity) && !(source.is(DamageTypes.ON_FIRE) || source.is(DamageTypes.IN_FIRE) || source.is(DamageTypes.HOT_FLOOR)) && this.random.nextInt(10) != 0) {
                      this.teleport();
                  }
 
