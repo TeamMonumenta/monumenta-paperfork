@@ -1,4 +1,4 @@
-Subject: [PATCH] [PATCH] Monumenta - Prevent Enderman teleportation from fire damage
+Subject: [PATCH] Monumenta - Prevent Enderman teleportation from fire damage
 ---
 Index: src/main/java/net/minecraft/world/entity/monster/EnderMan.java
 IDEA additional info:
