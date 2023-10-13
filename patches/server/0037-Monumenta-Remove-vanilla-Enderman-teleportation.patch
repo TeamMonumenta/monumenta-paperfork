@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: FrozenEarth <frozenearth3@gmail.com>
+Date: Thu, 5 Oct 2023 12:19:57 -0500
+Subject: [PATCH] Monumenta - Remove vanilla Enderman teleportation
+
+
+diff --git a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+index f3864d0975f55cfd1a43f098f95ee2973bf10af7..8878dbf93bf81371aa0b5c3e244a3040433f8de7 100644
+--- a/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
++++ b/src/main/java/net/minecraft/world/entity/monster/EnderMan.java
+@@ -296,15 +296,8 @@ public class EnderMan extends Monster implements NeutralMob {
+     }
+ 
+     public boolean teleport() { // Paper - protected->public
+-        if (!this.level.isClientSide() && this.isAlive()) {
+-            double d0 = this.getX() + (this.random.nextDouble() - 0.5D) * 64.0D;
+-            double d1 = this.getY() + (double) (this.random.nextInt(64) - 32);
+-            double d2 = this.getZ() + (this.random.nextDouble() - 0.5D) * 64.0D;
+-
+-            return this.teleport(d0, d1, d2);
+-        } else {
+-            return false;
+-        }
++        // Monumenta - Remove vanilla Enderman teleportation
++        return false;
+     }
+ 
+     boolean teleportTowards(Entity entity) {
