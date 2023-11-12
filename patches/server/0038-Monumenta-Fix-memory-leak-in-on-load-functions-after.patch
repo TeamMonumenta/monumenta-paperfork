@@ -6,7 +6,7 @@ Subject: [PATCH] Monumenta: Fix memory leak in on-load functions after world
 
 
 diff --git a/src/main/java/net/minecraft/commands/CommandSourceStack.java b/src/main/java/net/minecraft/commands/CommandSourceStack.java
-index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6becec6fe38eb 100644
+index 7b6b51392b123d34382233adcf4c3d4867bdaa32..84710fdd6c8512a3c0e69f5bfe9e62f59baf5825 100644
 --- a/src/main/java/net/minecraft/commands/CommandSourceStack.java
 +++ b/src/main/java/net/minecraft/commands/CommandSourceStack.java
 @@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -25,7 +25,7 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
  import net.minecraft.world.level.dimension.DimensionType;
  import net.minecraft.world.phys.Vec2;
  import net.minecraft.world.phys.Vec3;
-@@ -47,7 +49,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+@@ -47,14 +49,14 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
      public static final SimpleCommandExceptionType ERROR_NOT_ENTITY = new SimpleCommandExceptionType(Component.translatable("permissions.requires.entity"));
      public final CommandSource source;
      private final Vec3 worldPosition;
@@ -34,6 +34,14 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
      private final int permissionLevel;
      private final String textName;
      private final Component displayName;
+     private final MinecraftServer server;
+     private final boolean silent;
+     @Nullable
+-    private final Entity entity;
++    private final WeakReference<Entity> entity;
+     @Nullable
+     private final ResultConsumer<CommandSourceStack> consumer;
+     private final EntityAnchorArgument.Anchor anchor;
 @@ -70,6 +72,23 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
      }
  
@@ -42,7 +50,7 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
 +        this.worldPosition = pos;
 +        this.level = new WeakReference<>(world);
 +        this.silent = silent;
-+        this.entity = entity;
++        this.entity = entity == null ? null : new WeakReference<>(entity);
 +        this.permissionLevel = level;
 +        this.textName = name;
 +        this.displayName = displayName;
@@ -54,11 +62,21 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
 +        this.chatMessageChainer = messageChainTaskQueue;
 +    }
 +
-+    protected CommandSourceStack(CommandSource output, Vec3 pos, Vec2 rot, WeakReference<ServerLevel> world, int level, String name, Component displayName, MinecraftServer server, @Nullable Entity entity, boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer, EntityAnchorArgument.Anchor entityAnchor, CommandSigningContext signedArguments, TaskChainer messageChainTaskQueue) {
++    protected CommandSourceStack(CommandSource output, Vec3 pos, Vec2 rot, WeakReference<ServerLevel> world, int level, String name, Component displayName, MinecraftServer server, @Nullable WeakReference<Entity> entity, boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer, EntityAnchorArgument.Anchor entityAnchor, CommandSigningContext signedArguments, TaskChainer messageChainTaskQueue) {
          this.source = output;
          this.worldPosition = pos;
          this.level = world;
-@@ -129,10 +148,11 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+@@ -91,7 +110,8 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     }
+ 
+     public CommandSourceStack withEntity(Entity entity) {
+-        return this.entity == entity ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level, this.permissionLevel, entity.getName().getString(), entity.getDisplayName(), this.server, entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
++        Entity localEntity = this.entity.get();
++        return localEntity == entity ? this : new CommandSourceStack(this.source, this.worldPosition, this.rotation, this.level == null ? null : this.level.get(), this.permissionLevel, entity.getName().getString(), entity.getDisplayName(), this.server, entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+     }
+ 
+     public CommandSourceStack withPosition(Vec3 position) {
+@@ -129,13 +149,14 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
      }
  
      public CommandSourceStack withLevel(ServerLevel world) {
@@ -71,8 +89,12 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
 +            double d0 = DimensionType.getTeleportationScale(localWorld.dimensionType(), world.dimensionType());
              Vec3 vec3d = new Vec3(this.worldPosition.x * d0, this.worldPosition.y, this.worldPosition.z * d0);
  
-             return new CommandSourceStack(this.source, vec3d, this.rotation, world, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
-@@ -217,7 +237,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+-            return new CommandSourceStack(this.source, vec3d, this.rotation, world, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
++            return new CommandSourceStack(this.source, vec3d, this.rotation, world, this.permissionLevel, this.textName, this.displayName, this.server, getEntity(), this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+         }
+     }
+ 
+@@ -217,24 +238,25 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
      }
  
      public ServerLevel getLevel() {
@@ -81,7 +103,47 @@ index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6bece
      }
  
      @Nullable
-@@ -413,7 +433,12 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     public Entity getEntity() {
+-        return this.entity;
++        return this.entity == null ? null : this.entity.get();
+     }
+ 
+     public Entity getEntityOrException() throws CommandSyntaxException {
+-        if (this.entity == null) {
++        Entity localEntity = getEntity();
++        if (localEntity == null) {
+             throw CommandSourceStack.ERROR_NOT_ENTITY.create();
+         } else {
+-            return this.entity;
++            return localEntity;
+         }
+     }
+ 
+     public ServerPlayer getPlayerOrException() throws CommandSyntaxException {
+-        Entity entity = this.entity;
++        Entity entity = getEntity();
+ 
+         if (entity instanceof ServerPlayer) {
+             ServerPlayer entityplayer = (ServerPlayer) entity;
+@@ -247,7 +269,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+ 
+     @Nullable
+     public ServerPlayer getPlayer() {
+-        Entity entity = this.entity;
++        Entity entity = getEntity();
+         ServerPlayer entityplayer;
+ 
+         if (entity instanceof ServerPlayer) {
+@@ -262,7 +284,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     }
+ 
+     public boolean isPlayer() {
+-        return this.entity instanceof ServerPlayer;
++        return getEntity() instanceof ServerPlayer;
+     }
+ 
+     public Vec2 getRotation() {
+@@ -413,7 +435,12 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
  
      @Override
      public FeatureFlagSet enabledFeatures() {
