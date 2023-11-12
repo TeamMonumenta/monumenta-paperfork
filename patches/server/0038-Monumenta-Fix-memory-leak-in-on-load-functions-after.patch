@@ -1,0 +1,97 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Byron Marohn <Combustible@live.com>
+Date: Sat, 11 Nov 2023 22:52:10 -0800
+Subject: [PATCH] Monumenta: Fix memory leak in on-load functions after world
+ unload
+
+
+diff --git a/src/main/java/net/minecraft/commands/CommandSourceStack.java b/src/main/java/net/minecraft/commands/CommandSourceStack.java
+index 7b6b51392b123d34382233adcf4c3d4867bdaa32..89a1de2ef98153145c1505b9b9e6becec6fe38eb 100644
+--- a/src/main/java/net/minecraft/commands/CommandSourceStack.java
++++ b/src/main/java/net/minecraft/commands/CommandSourceStack.java
+@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
+ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+ import com.mojang.brigadier.suggestion.Suggestions;
+ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
++import java.lang.ref.WeakReference;
+ import java.util.Collection;
+ import java.util.Iterator;
+ import java.util.Objects;
+@@ -36,6 +37,7 @@ import net.minecraft.world.entity.Entity;
+ import net.minecraft.world.flag.FeatureFlagSet;
+ import net.minecraft.world.level.GameRules;
+ import net.minecraft.world.level.Level;
++import net.minecraft.world.level.WorldDataConfiguration;
+ import net.minecraft.world.level.dimension.DimensionType;
+ import net.minecraft.world.phys.Vec2;
+ import net.minecraft.world.phys.Vec3;
+@@ -47,7 +49,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     public static final SimpleCommandExceptionType ERROR_NOT_ENTITY = new SimpleCommandExceptionType(Component.translatable("permissions.requires.entity"));
+     public final CommandSource source;
+     private final Vec3 worldPosition;
+-    private final ServerLevel level;
++    private final WeakReference<ServerLevel> level;
+     private final int permissionLevel;
+     private final String textName;
+     private final Component displayName;
+@@ -70,6 +72,23 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     }
+ 
+     protected CommandSourceStack(CommandSource output, Vec3 pos, Vec2 rot, ServerLevel world, int level, String name, Component displayName, MinecraftServer server, @Nullable Entity entity, boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer, EntityAnchorArgument.Anchor entityAnchor, CommandSigningContext signedArguments, TaskChainer messageChainTaskQueue) {
++        this.source = output;
++        this.worldPosition = pos;
++        this.level = new WeakReference<>(world);
++        this.silent = silent;
++        this.entity = entity;
++        this.permissionLevel = level;
++        this.textName = name;
++        this.displayName = displayName;
++        this.server = server;
++        this.consumer = consumer;
++        this.anchor = entityAnchor;
++        this.rotation = rot;
++        this.signingContext = signedArguments;
++        this.chatMessageChainer = messageChainTaskQueue;
++    }
++
++    protected CommandSourceStack(CommandSource output, Vec3 pos, Vec2 rot, WeakReference<ServerLevel> world, int level, String name, Component displayName, MinecraftServer server, @Nullable Entity entity, boolean silent, @Nullable ResultConsumer<CommandSourceStack> consumer, EntityAnchorArgument.Anchor entityAnchor, CommandSigningContext signedArguments, TaskChainer messageChainTaskQueue) {
+         this.source = output;
+         this.worldPosition = pos;
+         this.level = world;
+@@ -129,10 +148,11 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     }
+ 
+     public CommandSourceStack withLevel(ServerLevel world) {
+-        if (world == this.level) {
++        ServerLevel localWorld = this.level.get();
++        if (world == localWorld) {
+             return this;
+         } else {
+-            double d0 = DimensionType.getTeleportationScale(this.level.dimensionType(), world.dimensionType());
++            double d0 = DimensionType.getTeleportationScale(localWorld.dimensionType(), world.dimensionType());
+             Vec3 vec3d = new Vec3(this.worldPosition.x * d0, this.worldPosition.y, this.worldPosition.z * d0);
+ 
+             return new CommandSourceStack(this.source, vec3d, this.rotation, world, this.permissionLevel, this.textName, this.displayName, this.server, this.entity, this.silent, this.consumer, this.anchor, this.signingContext, this.chatMessageChainer);
+@@ -217,7 +237,7 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+     }
+ 
+     public ServerLevel getLevel() {
+-        return this.level;
++        return this.level.get();
+     }
+ 
+     @Nullable
+@@ -413,7 +433,12 @@ public class CommandSourceStack implements SharedSuggestionProvider, com.destroy
+ 
+     @Override
+     public FeatureFlagSet enabledFeatures() {
+-        return this.level.enabledFeatures();
++        ServerLevel localWorld = this.level.get();
++        if (localWorld != null) {
++            return localWorld.enabledFeatures();
++        } else {
++            return WorldDataConfiguration.DEFAULT.enabledFeatures();
++        }
+     }
+ 
+     // CraftBukkit start
