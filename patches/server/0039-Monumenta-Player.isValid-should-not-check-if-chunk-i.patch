@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Timothy Southwick <NickNackGus@gmail.com>
+Date: Thu, 14 Dec 2023 17:43:11 -0500
+Subject: [PATCH] Monumenta - Player.isValid() should not check if chunk is
+ loaded
+
+
+diff --git a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+index be64633c8bcee96f2ad5247525cac965b7b031b1..fd5f97432a6676dee48e810a6f7fb2cc0c3789c4 100644
+--- a/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
++++ b/src/main/java/org/bukkit/craftbukkit/entity/CraftPlayer.java
+@@ -192,6 +192,13 @@ public class CraftPlayer extends CraftHumanEntity implements Player {
+         this.firstPlayed = System.currentTimeMillis();
+     }
+ 
++    // Monumenta start - Player.isValid() shouldn't check for unloaded chunks
++    @Override
++    public boolean isValid() {
++        return this.entity.isAlive() && entity.valid;
++    }
++    // Monumenta end
++
+     // Paper start - implement view distances
+     @Override
+     public int getViewDistance() {
