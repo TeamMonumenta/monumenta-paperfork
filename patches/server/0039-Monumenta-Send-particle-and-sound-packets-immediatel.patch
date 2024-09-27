@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: U5B <56985400+U5B@users.noreply.github.com>
+Date: Mon, 16 Sep 2024 14:49:12 -0700
+Subject: [PATCH] Monumenta - Send particle and sound packets immediately
+
+
+diff --git a/src/main/java/net/minecraft/network/Connection.java b/src/main/java/net/minecraft/network/Connection.java
+index f9e10bf048929886db3c414038d2c7e9f84226a6..18817f60405d385f9e9b27fbbcb1c147a4871902 100644
+--- a/src/main/java/net/minecraft/network/Connection.java
++++ b/src/main/java/net/minecraft/network/Connection.java
+@@ -361,6 +361,8 @@ public class Connection extends SimpleChannelInboundHandler<Packet<?>> {
+                 packet instanceof net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket ||
+                 packet instanceof net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket ||
+                 packet instanceof net.minecraft.network.protocol.game.ClientboundClearTitlesPacket ||
++                // Monumenta: add particles and sounds to send immediately - usb
++                packet instanceof net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket || packet instanceof net.minecraft.network.protocol.game.ClientboundSoundPacket || packet instanceof net.minecraft.network.protocol.game.ClientboundSoundEntityPacket ||
+                 packet instanceof net.minecraft.network.protocol.game.ClientboundBossEventPacket;
+         }
+         // Paper end
