@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Floweynt <guywithanaxe42@gmail.com>
+Date: Tue, 1 Oct 2024 17:12:16 -0500
+Subject: [PATCH] Fix MCFunction retaining context leading to memory leak
+
+
+diff --git a/src/main/java/net/minecraft/commands/CommandFunction.java b/src/main/java/net/minecraft/commands/CommandFunction.java
+index ccaf6224b3ad5650e4712f14a249eb464c8b42d5..288bb6c24bc34d4b50abf8cd914109fb9c15d577 100644
+--- a/src/main/java/net/minecraft/commands/CommandFunction.java
++++ b/src/main/java/net/minecraft/commands/CommandFunction.java
+@@ -155,9 +155,14 @@ public class CommandFunction {
+         }
+ 
+         private int execute(ServerFunctionManager manager, CommandSourceStack source) throws CommandSyntaxException {
+-            return manager.getDispatcher().execute(Commands.mapSource(this.parse, (currentSource) -> {
+-                return source;
+-            }));
++            // Monumenta: fix memory leak as a result of functions holding on to command source stack
++            final var dummySource = parse.getContext().getSource();
++
++            try {
++                return manager.getDispatcher().execute(Commands.mapSource(this.parse, (currentSource) -> source));
++            } finally {
++                Commands.mapSource(this.parse, (ignored) -> dummySource);
++            }
+         }
+ 
+         @Override
