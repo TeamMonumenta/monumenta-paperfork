@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: U5B <56985400+U5B@users.noreply.github.com>
+Date: Tue, 24 Sep 2024 22:37:12 -0700
+Subject: [PATCH] Fix Commands.mapSource memory leak (Can be removed in 1.20)
+
+
+diff --git a/src/main/java/net/minecraft/commands/Commands.java b/src/main/java/net/minecraft/commands/Commands.java
+index 9b1319662d9050871998c6fb460074e9c41dcbf5..f80a73deb6ed91bcace298072a9182a4a03cd0cc 100644
+--- a/src/main/java/net/minecraft/commands/Commands.java
++++ b/src/main/java/net/minecraft/commands/Commands.java
+@@ -255,7 +255,7 @@ public class Commands {
+     }
+ 
+     public static <S> ParseResults<S> mapSource(ParseResults<S> parseResults, UnaryOperator<S> sourceMapper) {
+-        CommandContextBuilder<S> commandcontextbuilder = parseResults.getContext();
++        CommandContextBuilder<S> commandcontextbuilder = parseResults.getContext().copy(); // Monumenta: copy the sourcestack to prevent memory
+         CommandContextBuilder<S> commandcontextbuilder1 = commandcontextbuilder.withSource(sourceMapper.apply(commandcontextbuilder.getSource()));
+ 
+         return new ParseResults(commandcontextbuilder1, parseResults.getReader(), parseResults.getExceptions());
