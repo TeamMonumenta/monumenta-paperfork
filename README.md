@@ -1,3 +1,9 @@
+# DEPRECATED
+
+This repo has not been used since Monumenta was on 1.19.4, roughly ~October 2024. 
+
+All paper patches have migrated to mixins here: https://github.com/TeamMonumenta/monumenta-mixins
+
 # MonumentaPaper - A Paper fork for Monumenta, using paperweight
 
 ## Tasks
